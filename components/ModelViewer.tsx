@@ -1,32 +1,283 @@
-import React from 'react';
-import { View, StyleSheet, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, Platform, Text, ActivityIndicator } from 'react-native';
 import { WebView } from 'react-native-webview';
+import * as FileSystem from 'expo-file-system';
 
 interface ModelViewerProps {
   fileUri: string;
 }
 
 function NativeModelViewer({ fileUri }: ModelViewerProps) {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [fileData, setFileData] = useState<string | null>(null);
+
+  // Load the file data on component mount
+  useEffect(() => {
+    const loadFileData = async () => {
+      try {
+        console.log('Attempting to read file:', fileUri);
+        
+        // For iOS, we need to read the file and convert it to a base64 data URI
+        if (Platform.OS === 'ios') {
+          // Remove file:// prefix if present
+          const cleanUri = fileUri.replace('file://', '');
+          
+          // Read the file as base64
+          const base64Data = await FileSystem.readAsStringAsync(cleanUri, {
+            encoding: FileSystem.EncodingType.Base64
+          });
+          
+          // Create a data URI
+          setFileData(`data:model/stl;base64,${base64Data}`);
+          console.log('File loaded as data URI');
+        } else {
+          // For Android and web, we can use the URI directly
+          setFileData(fileUri);
+        }
+      } catch (err) {
+        console.error('Error reading file:', err);
+        setError(`Failed to read file: ${err.message}`);
+        setLoading(false);
+      }
+    };
+    
+    loadFileData();
+  }, [fileUri]);
+
+  // Create a placeholder model if no file is available
+  const createPlaceholderModel = () => {
+    return `
+      const geometry = new THREE.BoxGeometry(3, 3, 3);
+      const material = new THREE.MeshPhongMaterial({
+        color: 0x3d7aed,
+        specular: 0x111111,
+        shininess: 50
+      });
+      const mesh = new THREE.Mesh(geometry, material);
+      scene.add(mesh);
+      camera.position.z = 5;
+    `;
+  };
+
+  // Handle file loading with error handling
+  const loadModelCode = () => {
+    if (!fileData) {
+      return createPlaceholderModel();
+    }
+    
+    console.log('Loading model from:', Platform.OS === 'ios' ? 'data URI' : fileData);
+    
+    return `
+      // Show a placeholder cube while we attempt to load the model
+      ${createPlaceholderModel()}
+      
+      // Attempt to load the STL file
+      try {
+        const loader = new THREE.STLLoader();
+        
+        ${Platform.OS === 'ios' ? `
+        // For iOS, we use the data URI directly with the parse method
+        const base64Data = '${fileData}'.replace('data:model/stl;base64,', '');
+        const binaryString = window.atob(base64Data);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+        }
+        
+        try {
+          const geometry = loader.parse(bytes.buffer);
+          
+          // Remove the placeholder
+          while(scene.children.length > 0){ 
+            scene.remove(scene.children[0]); 
+          }
+          
+          // Add lights back
+          scene.add(ambientLight);
+          scene.add(directionalLight);
+          scene.add(backLight);
+          
+          geometry.center();
+          
+          const material = new THREE.MeshPhongMaterial({
+            color: 0x3d7aed,
+            specular: 0x111111,
+            shininess: 50
+          });
+          const mesh = new THREE.Mesh(geometry, material);
+          
+          // Auto-scale the model
+          geometry.computeBoundingBox();
+          const box = geometry.boundingBox;
+          const size = new THREE.Vector3();
+          box.getSize(size);
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const scale = 5 / maxDim;
+          mesh.scale.set(scale, scale, scale);
+          
+          scene.add(mesh);
+          
+          // Position camera
+          camera.position.z = 10;
+          camera.position.y = 5;
+          camera.position.x = 5;
+          camera.lookAt(0, 0, 0);
+          
+          // Signal success to React Native
+          window.ReactNativeWebView.postMessage(JSON.stringify({type: 'loaded'}));
+        } catch (parseError) {
+          console.error('Error parsing STL data:', parseError);
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'error',
+            message: 'Failed to parse STL file: ' + parseError.message
+          }));
+        }
+        ` : `
+        // For Android and web, use fetch
+        console.log('Attempting to load STL from:', '${fileData}');
+        
+        // Use fetch to get the file data first
+        fetch('${fileData}')
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.arrayBuffer();
+          })
+          .then(buffer => {
+            try {
+              // Parse the STL data from the buffer
+              const geometry = loader.parse(buffer);
+              
+              // Remove the placeholder
+              while(scene.children.length > 0){ 
+                scene.remove(scene.children[0]); 
+              }
+              
+              // Add lights back
+              scene.add(ambientLight);
+              scene.add(directionalLight);
+              scene.add(backLight);
+              
+              geometry.center();
+              
+              const material = new THREE.MeshPhongMaterial({
+                color: 0x3d7aed,
+                specular: 0x111111,
+                shininess: 50
+              });
+              const mesh = new THREE.Mesh(geometry, material);
+              
+              // Auto-scale the model
+              geometry.computeBoundingBox();
+              const box = geometry.boundingBox;
+              const size = new THREE.Vector3();
+              box.getSize(size);
+              const maxDim = Math.max(size.x, size.y, size.z);
+              const scale = 5 / maxDim;
+              mesh.scale.set(scale, scale, scale);
+              
+              scene.add(mesh);
+              
+              // Position camera
+              camera.position.z = 10;
+              camera.position.y = 5;
+              camera.position.x = 5;
+              camera.lookAt(0, 0, 0);
+              
+              // Signal success to React Native
+              window.ReactNativeWebView.postMessage(JSON.stringify({type: 'loaded'}));
+            } catch (parseError) {
+              console.error('Error parsing STL data:', parseError);
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'error',
+                message: 'Failed to parse STL file: ' + parseError.message
+              }));
+            }
+          })
+          .catch(error => {
+            console.error('Error fetching STL file:', error);
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'error',
+              message: 'Failed to fetch 3D model: ' + error.message
+            }));
+          });
+        `}
+      } catch (e) {
+        console.error('Exception in STL loader:', e);
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'error',
+          message: 'Exception in 3D viewer: ' + e.message
+        }));
+      }
+    `;
+  };
+
+  // If we're still loading the file data, show a loading indicator
+  if (!fileData && !error) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={styles.loadingText}>Preparing 3D model...</Text>
+      </View>
+    );
+  }
+
   const htmlContent = `
     <!DOCTYPE html>
     <html>
       <head>
         <title>3D Model Viewer</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
         <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
         <style>
-          body { margin: 0; }
-          canvas { width: 100%; height: 100%; }
+          body { 
+            margin: 0; 
+            overflow: hidden;
+            touch-action: none;
+          }
+          canvas { 
+            width: 100%; 
+            height: 100%; 
+            display: block;
+          }
+          #container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+          }
+          #error {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ff3b30;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background: rgba(255,255,255,0.8);
+            padding: 20px;
+            border-radius: 8px;
+            display: none;
+          }
         </style>
       </head>
       <body>
         <div id="container"></div>
+        <div id="error">Failed to load 3D model</div>
         <script>
+          // Create scene
           const scene = new THREE.Scene();
-          scene.background = new THREE.Color(0xffffff);
+          scene.background = new THREE.Color(0xf5f5f5);
           
+          // Create camera
           const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+          
+          // Create renderer
           const renderer = new THREE.WebGLRenderer({ antialias: true });
           renderer.setSize(window.innerWidth, window.innerHeight);
           document.getElementById('container').appendChild(renderer.domElement);
@@ -44,34 +295,7 @@ function NativeModelViewer({ fileUri }: ModelViewerProps) {
           scene.add(backLight);
 
           // Load the model
-          const loader = new THREE.STLLoader();
-          loader.load('${fileUri}', function(geometry) {
-            geometry.center();
-            
-            const material = new THREE.MeshPhongMaterial({
-              color: 0x3d7aed,
-              specular: 0x111111,
-              shininess: 50
-            });
-            const mesh = new THREE.Mesh(geometry, material);
-            
-            // Auto-scale the model
-            geometry.computeBoundingBox();
-            const box = geometry.boundingBox;
-            const size = new THREE.Vector3();
-            box.getSize(size);
-            const maxDim = Math.max(size.x, size.y, size.z);
-            const scale = 5 / maxDim;
-            mesh.scale.set(scale, scale, scale);
-            
-            scene.add(mesh);
-
-            // Position camera
-            camera.position.z = 10;
-            camera.position.y = 5;
-            camera.position.x = 5;
-            camera.lookAt(0, 0, 0);
-          });
+          ${loadModelCode()}
 
           // Add orbit controls
           const controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -97,25 +321,86 @@ function NativeModelViewer({ fileUri }: ModelViewerProps) {
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
           }
+          
+          // Handle errors
+          window.addEventListener('error', function(event) {
+            console.error('JS Error:', event.message);
+            if (window.ReactNativeWebView) {
+              window.ReactNativeWebView.postMessage(JSON.stringify({
+                type: 'error',
+                message: event.message
+              }));
+            }
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').innerText = 'Error: ' + event.message;
+          });
         </script>
       </body>
     </html>
   `;
 
+  const handleMessage = (event: any) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+      console.log('Received message from WebView:', data);
+      if (data.type === 'loaded') {
+        setLoading(false);
+      } else if (data.type === 'error') {
+        setError(data.message);
+        setLoading(false);
+      }
+    } catch (e) {
+      console.error('Error parsing message:', e);
+    }
+  };
+
   return (
-    <WebView
-      source={{ html: htmlContent }}
-      style={styles.webview}
-      onError={(syntheticEvent) => {
-        const { nativeEvent } = syntheticEvent;
-        console.warn('WebView error: ', nativeEvent);
-      }}
-    />
+    <View style={styles.container}>
+      <WebView
+        source={{ html: htmlContent }}
+        style={styles.webview}
+        onMessage={handleMessage}
+        onLoadEnd={() => {
+          // This doesn't mean the STL is loaded, just that the HTML has loaded
+          setTimeout(() => {
+            if (loading) {
+              setLoading(false);
+            }
+          }, 8000); // Timeout after 8 seconds
+        }}
+        onError={(syntheticEvent) => {
+          const { nativeEvent } = syntheticEvent;
+          console.warn('WebView error: ', nativeEvent);
+          setError('Failed to load viewer');
+          setLoading(false);
+        }}
+        originWhitelist={['*']}
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+        allowFileAccess={true}
+        allowUniversalAccessFromFileURLs={true}
+        allowFileAccessFromFileURLs={true}
+        mixedContentMode="always"
+        cacheEnabled={false}
+      />
+      {loading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Loading 3D model...</Text>
+        </View>
+      )}
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <Text style={styles.errorSubtext}>Try uploading a different STL file</Text>
+        </View>
+      )}
+    </View>
   );
 }
 
+// For web, we'll use the same approach for consistency
 function WebModelViewer({ fileUri }: ModelViewerProps) {
-  // For web, we'll use the same WebView approach for consistency
   return <NativeModelViewer fileUri={fileUri} />;
 }
 
@@ -140,5 +425,35 @@ const styles = StyleSheet.create({
   },
   webview: {
     flex: 1,
+  },
+  loadingContainer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#333',
+  },
+  errorContainer: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#ff3b30',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  errorSubtext: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
   },
 });

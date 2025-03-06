@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform, Alert } from 'react-native';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  Platform, 
+  Alert, 
+  FlatList,
+  SafeAreaView
+} from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 // import { useStripe } from '@stripe/stripe-react-native';
 import { Upload, FileWarning } from 'lucide-react-native';
@@ -7,15 +16,25 @@ import { ModelViewer } from '../../components/ModelViewer';
 import { CostCalculator } from '../../components/CostCalculator';
 import { sendAdminNotification } from '../../utils/notifications';
 
+// Define the types of items that can be displayed in the FlatList
+type ListItemType = 
+  | { type: 'fileInfo', file: any }
+  | { type: 'modelViewer', fileUri: string }
+  | { type: 'costCalculator', file: any, onCostCalculated: (cost: number) => void }
+  | { type: 'totalCost', cost: number }
+  | { type: 'error', message: string };
+
 export default function UploadScreen() {
   const [modelFile, setModelFile] = useState(null);
   const [totalCost, setTotalCost] = useState(0);
   const [error, setError] = useState('');
+  const [listItems, setListItems] = useState<ListItemType[]>([]);
   // const { initPaymentSheet, presentPaymentSheet } = useStripe();
 
   const handleFilePick = async () => {
     try {
       setError('');
+      setListItems([]);
 
       // On iOS, we need to be more permissive with file types initially
       // and then validate the extension afterward
@@ -80,6 +99,17 @@ export default function UploadScreen() {
       }
 
       setModelFile(file);
+      
+      // Create list items for FlatList
+      const newListItems: ListItemType[] = [
+        { type: 'fileInfo', file },
+        { type: 'modelViewer', fileUri: file.uri },
+        { type: 'costCalculator', file, onCostCalculated: setTotalCost },
+        { type: 'totalCost', cost: totalCost }
+      ];
+      
+      setListItems(newListItems);
+      
     } catch (err) {
       console.error('Error picking file:', err);
       if (Platform.OS === 'ios') {
@@ -130,6 +160,7 @@ export default function UploadScreen() {
 
       setModelFile(null);
       setTotalCost(0);
+      setListItems([]);
       Alert.alert(
         'Success!',
         'Your order has been placed successfully. We will start printing your model soon.',
@@ -142,8 +173,88 @@ export default function UploadScreen() {
     }
   };
 
+  // Render different types of items in the FlatList
+  const renderItem = ({ item }: { item: ListItemType }) => {
+    switch (item.type) {
+      case 'fileInfo':
+        return (
+          <View style={styles.fileInfo}>
+            <Text style={styles.fileName}>File: {item.file.name}</Text>
+            <Text style={styles.fileSize}>
+              Size: {(item.file.size / 1024 / 1024).toFixed(2)}MB
+            </Text>
+          </View>
+        );
+      
+      case 'modelViewer':
+        return (
+          <View style={styles.modelContainer}>
+            <ModelViewer fileUri={item.fileUri} />
+          </View>
+        );
+      
+      case 'costCalculator':
+        return (
+          <CostCalculator
+            file={item.file}
+            onCostCalculated={item.onCostCalculated}
+          />
+        );
+      
+      case 'totalCost':
+        return (
+          <View style={styles.totalCostContainer}>
+            <Text style={styles.totalCostLabel}>Total Cost:</Text>
+            <Text style={styles.totalCostValue}>${item.cost.toFixed(2)}</Text>
+          </View>
+        );
+      
+      case 'error':
+        return (
+          <View style={styles.errorContainer}>
+            <FileWarning size={20} color="#ff3b30" />
+            <Text style={styles.errorText}>{item.message}</Text>
+          </View>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
+  // Update the total cost item when it changes
+  React.useEffect(() => {
+    if (listItems.length > 0 && totalCost > 0) {
+      const updatedItems = listItems.map(item => 
+        item.type === 'totalCost' ? { ...item, cost: totalCost } : item
+      );
+      setListItems(updatedItems);
+    }
+  }, [totalCost]);
+
+  // Update error display when error changes
+  React.useEffect(() => {
+    if (error) {
+      // Find if there's already an error item
+      const hasErrorItem = listItems.some(item => item.type === 'error');
+      
+      if (!hasErrorItem) {
+        setListItems([...listItems, { type: 'error', message: error }]);
+      } else {
+        // Update existing error
+        const updatedItems = listItems.map(item => 
+          item.type === 'error' ? { type: 'error', message: error } : item
+        );
+        setListItems(updatedItems);
+      }
+    } else {
+      // Remove error items if error is cleared
+      setListItems(listItems.filter(item => item.type !== 'error'));
+    }
+  }, [error]);
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Upload Your 3D Model</Text>
         <Text style={styles.subtitle}>
@@ -166,48 +277,34 @@ export default function UploadScreen() {
         </Text>
       </TouchableOpacity>
 
-      {error ? (
+      <FlatList
+        data={listItems}
+        renderItem={renderItem}
+        keyExtractor={(item, index) => `${item.type}-${index}`}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        ListFooterComponent={
+          modelFile ? (
+            <TouchableOpacity
+              style={styles.payButton}
+              onPress={handlePayment}
+              disabled={!modelFile}
+            >
+              <Text style={styles.payButtonText}>
+                Proceed to Payment
+              </Text>
+            </TouchableOpacity>
+          ) : null
+        }
+      />
+
+      {error && listItems.length === 0 && (
         <View style={styles.errorContainer}>
           <FileWarning size={20} color="#ff3b30" />
           <Text style={styles.errorText}>{error}</Text>
         </View>
-      ) : null}
-
-      {modelFile && (
-        <View style={styles.fileInfo}>
-          <Text style={styles.fileName}>File: {modelFile.name}</Text>
-          <Text style={styles.fileSize}>
-            Size: {(modelFile.size / 1024 / 1024).toFixed(2)}MB
-          </Text>
-        </View>
       )}
-
-      {modelFile && (
-        <>
-          <View style={styles.modelContainer}>
-            <ModelViewer fileUri={modelFile.uri} />
-          </View>
-
-          <CostCalculator
-            file={modelFile}
-            onCostCalculated={setTotalCost}
-          />
-
-          <TouchableOpacity
-            style={[
-              styles.payButton,
-              !modelFile && styles.payButtonDisabled
-            ]}
-            onPress={handlePayment}
-            disabled={!modelFile}
-          >
-            <Text style={styles.payButtonText}>
-              Pay ${totalCost.toFixed(2)}
-            </Text>
-          </TouchableOpacity>
-        </>
-      )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -248,27 +345,45 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontWeight: '600',
   },
+  listContent: {
+    paddingBottom: 20,
+  },
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff5f5',
+    backgroundColor: '#ffebeb',
     padding: 12,
     borderRadius: 8,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   errorText: {
     color: '#ff3b30',
     marginLeft: 8,
-    fontSize: 14,
+    flex: 1,
   },
   fileInfo: {
     backgroundColor: '#fff',
     padding: 16,
     borderRadius: 12,
     marginBottom: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      },
+    }),
   },
   fileName: {
     fontSize: 16,
+    fontWeight: '600',
     color: '#333',
     marginBottom: 4,
   },
@@ -277,40 +392,72 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   modelContainer: {
-    height: 300,
+    height: 250,
     backgroundColor: '#fff',
     borderRadius: 12,
-    marginBottom: 20,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    marginBottom: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      },
+    }),
   },
   payButton: {
     backgroundColor: '#34C759',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    marginTop: 10,
   },
   payButtonDisabled: {
-    backgroundColor: '#a8e5b5',
+    backgroundColor: '#a8e4b8',
   },
   payButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  totalCostContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      },
+    }),
+  },
+  totalCostLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  totalCostValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#007AFF',
   },
 });
