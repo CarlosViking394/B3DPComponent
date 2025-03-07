@@ -66,4 +66,4 @@ A mobile application for 3D printing services that allows users to upload 3D mod
 
 ## Development
 
-To create a new branch for development:
+
