@@ -45,13 +45,24 @@ export default function RootLayout() {
       <ThemeProvider>
         <View style={{ flex: 1 }}>
           <StatusBar style="auto" />
-          <Stack screenOptions={{
-            contentStyle: {
-              paddingTop: 0,
-              paddingBottom: 0
-            }
-          }}>
-            <Stack.Screen name="+not-found" />
+          <Stack 
+            screenOptions={{
+              contentStyle: {
+                paddingTop: 0,
+                paddingBottom: 0
+              },
+              headerShown: true,
+              headerTitle: ""
+            }}
+          >
+            <Stack.Screen 
+              name="+not-found" 
+              options={{
+                headerTitle: "Not Found",
+                headerShown: true
+              }}
+            />
+            <Stack.Screen name="materialDetails" />
           </Stack>
         </View>
       </ThemeProvider>

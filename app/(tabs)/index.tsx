@@ -1,9 +1,18 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { Printer, Clock, Palette, Award } from 'lucide-react-native';
 
 export default function HomeScreen() {
+  const router = useRouter();
+
+  const handleMaterialPress = (materialType: string) => {
+    router.push({
+      pathname: "/materialDetails",
+      params: { material: materialType }
+    });
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.hero}>
@@ -73,11 +82,15 @@ export default function HomeScreen() {
               price: '45/kg'
             }
           ].map((material, index) => (
-            <View key={index} style={styles.materialCard}>
+            <TouchableOpacity
+              key={index}
+              onPress={() => handleMaterialPress(material.name)}
+              style={styles.materialCard}
+            >
               <Image source={{ uri: material.image }} style={styles.materialImage} />
               <Text style={styles.materialName}>{material.name}</Text>
               <Text style={styles.materialPrice}>${material.price}</Text>
-            </View>
+            </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
