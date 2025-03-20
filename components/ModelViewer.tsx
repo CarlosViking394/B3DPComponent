@@ -16,34 +16,47 @@ function NativeModelViewer({ fileUri }: ModelViewerProps) {
   useEffect(() => {
     const loadFileData = async () => {
       try {
-        console.log('Attempting to read file:', fileUri);
-        
-        // For iOS, we need to read the file and convert it to a base64 data URI
+        console.log('Attempting to load file:', fileUri);
+  
         if (Platform.OS === 'ios') {
-          // Remove file:// prefix if present
+          // iOS: Convert file to Base64
           const cleanUri = fileUri.replace('file://', '');
-          
-          // Read the file as base64
           const base64Data = await FileSystem.readAsStringAsync(cleanUri, {
-            encoding: FileSystem.EncodingType.Base64
+            encoding: FileSystem.EncodingType.Base64,
           });
-          
-          // Create a data URI
           setFileData(`data:model/stl;base64,${base64Data}`);
-          console.log('File loaded as data URI');
+          console.log('File loaded as base64 for WebView.');
         } else {
-          // For Android and web, we can use the URI directly
-          setFileData(fileUri);
+          // Android: Copy file to cacheDirectory for accessibility and convert to Base64
+          const fileName = fileUri.split('/').pop();
+          if (!fileName) {
+            throw new Error(`Invalid fileUri, unable to extract filename: ${fileUri}`);
+          }
+          const newPath = FileSystem.cacheDirectory + fileName;
+          await FileSystem.copyAsync({
+            from: fileUri,
+            to: newPath,
+          });
+          console.log('File copied for Android from', fileUri, 'to', newPath);
+          // Convert copied file to Base64 for WebView compatibility
+          const base64Data = await FileSystem.readAsStringAsync(newPath, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+          setFileData(`data:model/stl;base64,${base64Data}`);
+          console.log('File loaded as base64 for Android WebView.');
         }
       } catch (err) {
-        console.error('Error reading file:', err);
-        setError(`Failed to read file: ${err.message}`);
+        const errorMessage = err instanceof Error ? err.message : String(err);
+        console.error('Error loading file:', errorMessage);
+        setError(`Failed to read file: ${errorMessage}`);
         setLoading(false);
       }
     };
-    
+  
     loadFileData();
   }, [fileUri]);
+  
+  
 
   // Create a placeholder model if no file is available
   const createPlaceholderModel = () => {

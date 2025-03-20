@@ -52,10 +52,10 @@ export function CostCalculator({ file, onCostCalculated }: CostCalculatorProps) 
 
     // Calculate total cost
     const materialCost = MATERIALS[material].price * materialWeight;
-    const operatingCost = estimatedTimeHours * 10; // $10 per hour operating cost
+    const operatingCost = estimatedTimeHours * 45; // $45AUD per hour operating cost
     const totalCost = materialCost + operatingCost;
 
-    onCostCalculated(Math.max(totalCost, 5)); // Minimum $5 charge
+    onCostCalculated(Math.max(totalCost, 35)); // Minimum $35 charge
   };
 
   const MaterialButton = ({ name }: { name: string }) => (

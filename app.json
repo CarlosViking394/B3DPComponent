@@ -1,5 +1,9 @@
 {
   "expo": {
+    "permissions": [
+      "READ_EXTERNAL_STORAGE",
+      "WRITE_EXTERNAL_STORAGE"
+    ],
     "name": "bolt-expo-nativewind",
     "slug": "bolt-expo-nativewind",
     "version": "1.0.0",
