@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
-import { Slider } from '@rneui/themed';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Location from 'expo-location';
 
 interface CostCalculatorProps {
   file: {
@@ -9,6 +9,8 @@ interface CostCalculatorProps {
     name: string;
   };
   onCostCalculated: (cost: number) => void;
+  // If you want to allow batch printing logic, pass isBatch={true}
+  isBatch?: boolean;
 }
 
 interface MaterialCosts {
@@ -18,115 +20,194 @@ interface MaterialCosts {
   };
 }
 
+// Helper: Consider anything not 'PLA' as exotic
+function isExotic(material: string) {
+  return material !== 'PLA';
+}
+
+// Material definitions (you can extend these as needed)
 const MATERIALS: MaterialCosts = {
-  PLA: { price: 25, color: '#4CAF50' },
-  ABS: { price: 30, color: '#2196F3' },
+  PLA:  { price: 25, color: '#4CAF50' },
+  ABS:  { price: 30, color: '#2196F3' },
   PETG: { price: 35, color: '#9C27B0' },
-  TPU: { price: 45, color: '#FF9800' },
+  TPU:  { price: 45, color: '#FF9800' },
 };
 
-export function CostCalculator({ file, onCostCalculated }: CostCalculatorProps) {
-  const [thickness, setThickness] = useState(0.2);
+// Fixed printing center coordinates (example: Brisbane)
+const PRINT_CENTER_COORDS = {
+  latitude: -27.4698,
+  longitude: 153.0251,
+};
+
+// Helper functions for distance calculation
+function deg2rad(deg: number): number {
+  return deg * (Math.PI / 180);
+}
+
+function getDistanceFromLatLonInKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Earth radius in km
+  const dLat = deg2rad(lat2 - lat1);
+  const dLon = deg2rad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(lat1)) *
+      Math.cos(deg2rad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+/**
+ * Calculates the cost based on the tiered pricing logic (or batch mode) and enforces a minimum of $30.
+ */
+function getTieredPrice(
+  estimatedTime: number,
+  materialType: string,
+  materialWeight: number,
+  isBatch: boolean
+): number {
+  let cost = 0;
+
+  if (isBatch) {
+    const hourlyRate = isExotic(materialType) ? 10 : 7;
+    const batchCost = hourlyRate * estimatedTime;
+    const rawMaterialCost = MATERIALS[materialType].price * materialWeight;
+    cost = batchCost + rawMaterialCost;
+  } else {
+    if (estimatedTime < 1) {
+      // Tiny
+      cost = isExotic(materialType) ? 15 : 10;
+    } else if (estimatedTime < 3) {
+      // Small
+      cost = isExotic(materialType) ? 45 : 30;
+    } else if (estimatedTime < 6) {
+      // Medium
+      cost = isExotic(materialType) ? 90 : 60;
+    } else if (estimatedTime < 10) {
+      // Large
+      cost = isExotic(materialType) ? 150 : 100;
+    } else {
+      // Over 10 hours - clamped to Large pricing (or you can opt for batch mode)
+      cost = isExotic(materialType) ? 150 : 100;
+    }
+  }
+
+  // Enforce a minimum price of $30
+  return Math.max(cost, 30);
+}
+
+export function CostCalculator({ file, onCostCalculated, isBatch = false }: CostCalculatorProps) {
   const [material, setMaterial] = useState('PLA');
   const [estimatedTime, setEstimatedTime] = useState(0);
-  const [sliderValue, setSliderValue] = useState(0);
+  const [eta, setEta] = useState('N/A');
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const insets = useSafeAreaInsets();
+  const thickness = 0.2; // Fixed layer thickness
 
+  // Request and store the user's location
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.log('Location permission not granted');
+        return;
+      }
+      let location = await Location.getCurrentPositionAsync({});
+      setUserLocation({ latitude: location.coords.latitude, longitude: location.coords.longitude });
+    })();
+  }, []);
+
+  // Recalculate costs (and ETA) whenever relevant parameters change
   useEffect(() => {
     calculateCosts();
-  }, [thickness, material, file]);
+  }, [material, file, isBatch, userLocation]);
 
   const calculateCosts = () => {
-    // Basic estimation algorithm
-    const volumeEstimate = file.size / 1024; // Rough estimate based on file size
-    const materialDensity = 1.24; // g/cm³ (average for PLA)
+    // Estimate volume and material weight (basic approximation)
+    const volumeEstimate = file.size / 1024; // approximate volume
+    const materialDensity = 1.24; // density (e.g., for PLA)
     const materialVolume = volumeEstimate * thickness;
-    const materialWeight = materialVolume * materialDensity / 1000; // Convert to kg
-    
-    // Calculate print time (rough estimate)
+    const materialWeight = (materialVolume * materialDensity) / 1000; // weight in kg
+
+    // Estimate print time (in hours)
     const printSpeed = 60; // mm/s
-    const layerHeight = thickness;
-    const estimatedTimeHours = (materialVolume / (printSpeed * layerHeight * 60)) + 0.5; // Add setup time
-    
+    const estimatedTimeHours = materialVolume / (printSpeed * thickness * 60) + 0.7;
     setEstimatedTime(estimatedTimeHours);
 
-    // Calculate total cost
-    const materialCost = MATERIALS[material].price * materialWeight;
-    const operatingCost = estimatedTimeHours * 45; // $45AUD per hour operating cost
-    const totalCost = materialCost + operatingCost;
+    // Calculate tiered cost
+    const totalCost = getTieredPrice(estimatedTimeHours, material, materialWeight, isBatch);
+    onCostCalculated(totalCost);
 
-    onCostCalculated(Math.max(totalCost, 35)); // Minimum $35 charge
+    // Calculate ETA based on user's location
+    if (userLocation) {
+      const distance = getDistanceFromLatLonInKm(
+        userLocation.latitude,
+        userLocation.longitude,
+        PRINT_CENTER_COORDS.latitude,
+        PRINT_CENTER_COORDS.longitude
+      );
+      // Assume a shipping speed of 50 km per day (this is an example; adjust as needed)
+      const shippingDays = Math.ceil(distance / 50);
+      // Convert print time from hours to days (using 24 hours per day)
+      const printDays = estimatedTimeHours / 24;
+      const totalDays = printDays + shippingDays;
+      setEta(`${totalDays.toFixed(1)} days`);
+    } else {
+      setEta('N/A');
+    }
   };
 
-  const MaterialButton = ({ name }: { name: string }) => (
-    <TouchableOpacity
-      style={[
-        styles.materialButton,
-        material === name && { backgroundColor: MATERIALS[name].color },
-      ]}
-      onPress={() => setMaterial(name)}
-      accessible={true}
-      accessibilityRole="button">
-      <Text
-        style={[
-          styles.materialButtonText,
-          material === name && styles.materialButtonTextSelected,
-        ]}>
-        {name}
-      </Text>
-    </TouchableOpacity>
-  );
-
   return (
-    <View style={[
-      styles.container,
-      Platform.select({
-        ios: {
-          paddingTop: insets.top + 16,
-          paddingBottom: insets.bottom + 16,
-          paddingHorizontal: 16
-        },
-        android: {
-          padding: 16
-        },
-        default: {
-          padding: 20
-        }
-      })
-    ]}>
+    <View
+      style={[
+        styles.container,
+        Platform.select({
+          ios: {
+            paddingTop: insets.top + 16,
+            paddingBottom: insets.bottom + 16,
+            paddingHorizontal: 16,
+          },
+          android: {
+            padding: 16,
+          },
+          default: {
+            padding: 20,
+          },
+        }),
+      ]}
+    >
       <Text style={styles.title}>Print Settings</Text>
 
-      <View style={styles.setting}>
-        <Text style={styles.label}>
-          Layer Thickness: {thickness.toFixed(1)}mm
-        </Text>
-        <Slider
-          value={sliderValue}
-          onValueChange={(val) => {
-            setSliderValue(val);
-            // Convert slider value to thickness (0-100 to 0.1-1.0)
-            const decimalValue = val / 100;
-            setThickness(decimalValue + 0.1); // Adjust range to 0.1-1.1mm
-          }}
-          minimumValue={0}
-          maximumValue={100}
-          step={1}
-          trackStyle={{ height: 5, backgroundColor: 'transparent' }}
-          thumbStyle={{ height: 20, width: 20, backgroundColor: '#007AFF' }}
-          minimumTrackTintColor="#007AFF"
-          maximumTrackTintColor="#000000"
-        />
-      </View>
-
+      {/* Material Selection */}
       <View style={styles.setting}>
         <Text style={styles.label}>Material</Text>
         <View style={styles.materialOptions}>
-          {Object.keys(MATERIALS).map((materialName) => (
-            <MaterialButton key={materialName} name={materialName} />
+          {Object.keys(MATERIALS).map((matName) => (
+            <TouchableOpacity
+              key={matName}
+              style={[
+                styles.materialButton,
+                material === matName && {
+                  backgroundColor: MATERIALS[matName].color,
+                },
+              ]}
+              onPress={() => setMaterial(matName)}
+            >
+              <Text
+                style={[
+                  styles.materialButtonText,
+                  material === matName && styles.materialButtonTextSelected,
+                ]}
+              >
+                {matName}
+              </Text>
+            </TouchableOpacity>
           ))}
         </View>
       </View>
 
+      {/* Display Estimated Print Time, ETA, and Material Cost */}
       <View style={styles.estimates}>
         <View style={styles.estimateItem}>
           <Text style={styles.estimateLabel}>Estimated Print Time</Text>
@@ -135,7 +216,11 @@ export function CostCalculator({ file, onCostCalculated }: CostCalculatorProps) 
           </Text>
         </View>
         <View style={styles.estimateItem}>
-          <Text style={styles.estimateLabel}>Material Cost</Text>
+          <Text style={styles.estimateLabel}>Estimated Arrival</Text>
+          <Text style={styles.estimateValue}>{eta}</Text>
+        </View>
+        <View style={styles.estimateItem}>
+          <Text style={styles.estimateLabel}>Material Cost (per kg)</Text>
           <Text style={styles.estimateValue}>
             ${(MATERIALS[material].price).toFixed(2)}/kg
           </Text>
@@ -178,10 +263,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginBottom: 8,
-  },
-  slider: {
-    width: '100%',
-    height: 40,
   },
   materialOptions: {
     flexDirection: 'row',
