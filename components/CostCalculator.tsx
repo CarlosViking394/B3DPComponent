@@ -132,7 +132,7 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
 
     // Estimate print time (in hours)
     const printSpeed = 60; // mm/s
-    const estimatedTimeHours = materialVolume / (printSpeed * thickness * 60) + 0.7;
+    const estimatedTimeHours = Math.max(1, materialVolume / (printSpeed * thickness * 60) + 0.7);
     setEstimatedTime(estimatedTimeHours);
 
     // Calculate tiered cost
@@ -151,7 +151,7 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
       const shippingDays = Math.ceil(distance / 50);
       // Convert print time from hours to days (using 24 hours per day)
       const printDays = estimatedTimeHours / 24;
-      const totalDays = printDays + shippingDays;
+      const totalDays = printDays + shippingDays + 1; // Adding 1 extra day
       setEta(`${totalDays.toFixed(1)} days`);
     } else {
       setEta('N/A');
@@ -218,12 +218,6 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
         <View style={styles.estimateItem}>
           <Text style={styles.estimateLabel}>Estimated Arrival</Text>
           <Text style={styles.estimateValue}>{eta}</Text>
-        </View>
-        <View style={styles.estimateItem}>
-          <Text style={styles.estimateLabel}>Material Cost (per kg)</Text>
-          <Text style={styles.estimateValue}>
-            ${(MATERIALS[material].price).toFixed(2)}/kg
-          </Text>
         </View>
       </View>
     </View>
