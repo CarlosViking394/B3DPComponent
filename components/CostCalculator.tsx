@@ -20,6 +20,15 @@ interface MaterialCosts {
   };
 }
 
+interface OptionalService {
+  name: string;
+  price: number;
+}
+
+interface OptionalServices {
+  [key: string]: OptionalService;
+}
+
 // Helper: Consider anything not 'PLA' as exotic
 function isExotic(material: string) {
   return material !== 'PLA';
@@ -31,6 +40,14 @@ const MATERIALS: MaterialCosts = {
   ABS:  { price: 30, color: '#2196F3' },
   PETG: { price: 35, color: '#9C27B0' },
   TPU:  { price: 45, color: '#FF9800' },
+};
+
+// Optional services with hourly rates
+const OPTIONAL_SERVICES: OptionalServices = {
+  MODELLING: { name: 'Modelling / Design', price: 70 },
+  SUPPORT_REMOVAL: { name: 'Support Removal', price: 60 },
+  PAINTING: { name: 'Painting', price: 60 },
+  CLEANING: { name: 'Cleaning / Sanding', price: 60 },
 };
 
 // Fixed printing center coordinates (example: Brisbane)
@@ -102,6 +119,18 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
   const [estimatedTime, setEstimatedTime] = useState(0);
   const [eta, setEta] = useState('N/A');
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [selectedServices, setSelectedServices] = useState<{[key: string]: boolean}>({
+    MODELLING: false,
+    SUPPORT_REMOVAL: false,
+    PAINTING: false,
+    CLEANING: false,
+  });
+  const [serviceHours, setServiceHours] = useState<{[key: string]: number}>({
+    MODELLING: 1,
+    SUPPORT_REMOVAL: 1,
+    PAINTING: 1,
+    CLEANING: 1,
+  });
   const insets = useSafeAreaInsets();
   const thickness = 0.2; // Fixed layer thickness
 
@@ -121,7 +150,7 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
   // Recalculate costs (and ETA) whenever relevant parameters change
   useEffect(() => {
     calculateCosts();
-  }, [material, file, isBatch, userLocation]);
+  }, [material, file, isBatch, userLocation, selectedServices]);
 
   const calculateCosts = () => {
     // Estimate volume and material weight (basic approximation)
@@ -136,7 +165,15 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
     setEstimatedTime(estimatedTimeHours);
 
     // Calculate tiered cost
-    const totalCost = getTieredPrice(estimatedTimeHours, material, materialWeight, isBatch);
+    let totalCost = getTieredPrice(estimatedTimeHours, material, materialWeight, isBatch);
+    
+    // Add costs for selected optional services
+    Object.keys(selectedServices).forEach(service => {
+      if (selectedServices[service]) {
+        totalCost += OPTIONAL_SERVICES[service].price * serviceHours[service];
+      }
+    });
+    
     onCostCalculated(totalCost);
 
     // Calculate ETA based on user's location
@@ -205,6 +242,33 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
             </TouchableOpacity>
           ))}
         </View>
+      </View>
+
+      {/* Optional Services */}
+      <View style={styles.setting}>
+        <Text style={styles.label}>Optional Services</Text>
+        {Object.keys(OPTIONAL_SERVICES).map((serviceKey) => (
+          <View key={serviceKey} style={styles.serviceRow}>
+            <TouchableOpacity
+              style={[
+                styles.checkbox,
+                selectedServices[serviceKey] && styles.checkboxSelected,
+              ]}
+              onPress={() => {
+                setSelectedServices({
+                  ...selectedServices,
+                  [serviceKey]: !selectedServices[serviceKey],
+                });
+                calculateCosts();
+              }}
+            >
+              {selectedServices[serviceKey] && <Text style={styles.checkmark}>✓</Text>}
+            </TouchableOpacity>
+            <Text style={styles.serviceText}>
+              {OPTIONAL_SERVICES[serviceKey].name} = ${OPTIONAL_SERVICES[serviceKey].price} per hour
+            </Text>
+          </View>
+        ))}
       </View>
 
       {/* Display Estimated Print Time, ETA, and Material Cost */}
@@ -300,6 +364,34 @@ const styles = StyleSheet.create({
   estimateValue: {
     fontSize: 14,
     fontWeight: '600',
+    color: '#333',
+  },
+  serviceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  checkboxSelected: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#4CAF50',
+  },
+  checkmark: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  serviceText: {
+    fontSize: 14,
     color: '#333',
   },
 });
