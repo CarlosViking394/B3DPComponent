@@ -68,18 +68,8 @@ export default function SettingsScreen() {
             {profileData && (
               <Text style={styles.settingDetail}>
                 {profileData.fullName}
-              </Text>
-            )}
-          </View>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.settingItem}>
-          <Mail size={24} color="#666" />
-          <View style={styles.settingContent}>
-            <Text style={styles.settingLabel}>Email Preferences</Text>
-            {profileData && (
-              <Text style={styles.settingDetail}>
-                {Object.values(profileData.emailPreferences).filter(Boolean).length} preferences enabled
+                {Object.values(profileData.emailPreferences).filter(Boolean).length > 0 && 
+                  ` • ${Object.values(profileData.emailPreferences).filter(Boolean).length} email preferences`}
               </Text>
             )}
           </View>
