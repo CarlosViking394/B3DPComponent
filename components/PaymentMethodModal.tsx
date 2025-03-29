@@ -32,9 +32,6 @@ export function PaymentMethodModal({ visible, onClose, onSave }: PaymentMethodMo
   // Form validation
   const [errors, setErrors] = useState<{[key: string]: string}>({});
 
-  // Debug log
-  console.log('PaymentMethodModal rendered with visible:', visible);
-
   const formatCardNumber = (text: string) => {
     const cleaned = text.replace(/\s+/g, '').replace(/[^0-9]/gi, '');
     const chunks = [];

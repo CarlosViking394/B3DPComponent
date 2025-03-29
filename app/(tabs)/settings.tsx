@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Bell, CreditCard, CircleHelp as HelpCircle, Lock, Mail, User } from 'lucide-react-native';
 import { PaymentMethodModal } from '../../components/PaymentMethodModal';
-import { SimpleTestModal } from '../../components/SimpleTestModal';
 
 export default function SettingsScreen() {
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
-  const [simpleModalVisible, setSimpleModalVisible] = useState(false);
   const [savedPaymentMethods, setSavedPaymentMethods] = useState<Array<{id: string, last4: string, brand: string}>>([]);
 
   const handleSavePayment = (paymentDetails: any) => {
@@ -32,7 +30,6 @@ export default function SettingsScreen() {
   };
 
   const handlePaymentMethodPress = () => {
-    console.log('Opening payment modal');
     setPaymentModalVisible(true);
   };
 
@@ -41,29 +38,6 @@ export default function SettingsScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Settings</Text>
         <Text style={styles.headerSubtitle}>Manage your account and preferences</Text>
-        
-        {/* Test buttons */}
-        <View style={styles.testButtonsContainer}>
-          <TouchableOpacity 
-            style={styles.testButton}
-            onPress={() => {
-              console.log('Payment modal test button pressed');
-              setPaymentModalVisible(true);
-            }}
-          >
-            <Text style={styles.testButtonText}>Test Payment Modal</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.testButton, { backgroundColor: '#FF9500' }]}
-            onPress={() => {
-              console.log('Simple modal test button pressed');
-              setSimpleModalVisible(true);
-            }}
-          >
-            <Text style={styles.testButtonText}>Test Simple Modal</Text>
-          </TouchableOpacity>
-        </View>
       </View>
 
       {/* Account Section */}
@@ -154,11 +128,6 @@ export default function SettingsScreen() {
         visible={paymentModalVisible}
         onClose={() => setPaymentModalVisible(false)}
         onSave={handleSavePayment}
-      />
-      
-      <SimpleTestModal
-        visible={simpleModalVisible}
-        onClose={() => setSimpleModalVisible(false)}
       />
     </ScrollView>
   );
@@ -256,22 +225,5 @@ const styles = StyleSheet.create({
   paymentCardNumber: {
     fontSize: 14,
     color: '#666',
-  },
-  testButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  testButton: {
-    flex: 1,
-    backgroundColor: '#007AFF',
-    padding: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginHorizontal: 5,
-  },
-  testButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
   },
 });
