@@ -1,54 +1,165 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Bell, CreditCard, CircleHelp as HelpCircle, Lock, Mail, User } from 'lucide-react-native';
+import { PaymentMethodModal } from '../../components/PaymentMethodModal';
+import { SimpleTestModal } from '../../components/SimpleTestModal';
 
 export default function SettingsScreen() {
-  const settingsSections = [
-    {
-      title: 'Account',
-      items: [
-        { icon: <User size={24} color="#666" />, label: 'Profile Information' },
-        { icon: <Mail size={24} color="#666" />, label: 'Email Preferences' },
-        { icon: <Lock size={24} color="#666" />, label: 'Password & Security' },
-      ],
-    },
-    {
-      title: 'Preferences',
-      items: [
-        { icon: <Bell size={24} color="#666" />, label: 'Notifications' },
-        { icon: <CreditCard size={24} color="#666" />, label: 'Payment Methods' },
-      ],
-    },
-    {
-      title: 'Support',
-      items: [
-        { icon: <HelpCircle size={24} color="#666" />, label: 'Help Center' },
-      ],
-    },
-  ];
+  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+  const [simpleModalVisible, setSimpleModalVisible] = useState(false);
+  const [savedPaymentMethods, setSavedPaymentMethods] = useState<Array<{id: string, last4: string, brand: string}>>([]);
+
+  const handleSavePayment = (paymentDetails: any) => {
+    // In a real app, you would send this to your backend
+    console.log('Payment details saved:', paymentDetails);
+    
+    // For demo purposes, we'll just save a representation locally
+    const last4 = paymentDetails.cardNumber.slice(-4);
+    // Determine card brand based on first digit (simplified)
+    let brand = 'Unknown';
+    const firstDigit = paymentDetails.cardNumber.charAt(0);
+    if (firstDigit === '4') brand = 'Visa';
+    else if (firstDigit === '5') brand = 'Mastercard';
+    else if (firstDigit === '3') brand = 'Amex';
+    else if (firstDigit === '6') brand = 'Discover';
+    
+    setSavedPaymentMethods([
+      ...savedPaymentMethods,
+      { id: Date.now().toString(), last4, brand }
+    ]);
+    
+    Alert.alert('Success', 'Payment method added successfully!');
+  };
+
+  const handlePaymentMethodPress = () => {
+    console.log('Opening payment modal');
+    setPaymentModalVisible(true);
+  };
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Settings</Text>
         <Text style={styles.headerSubtitle}>Manage your account and preferences</Text>
+        
+        {/* Test buttons */}
+        <View style={styles.testButtonsContainer}>
+          <TouchableOpacity 
+            style={styles.testButton}
+            onPress={() => {
+              console.log('Payment modal test button pressed');
+              setPaymentModalVisible(true);
+            }}
+          >
+            <Text style={styles.testButtonText}>Test Payment Modal</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.testButton, { backgroundColor: '#FF9500' }]}
+            onPress={() => {
+              console.log('Simple modal test button pressed');
+              setSimpleModalVisible(true);
+            }}
+          >
+            <Text style={styles.testButtonText}>Test Simple Modal</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {settingsSections.map((section, sectionIndex) => (
-        <View key={sectionIndex} style={styles.section}>
-          <Text style={styles.sectionTitle}>{section.title}</Text>
-          {section.items.map((item, itemIndex) => (
-            <TouchableOpacity key={itemIndex} style={styles.settingItem}>
-              {item.icon}
-              <Text style={styles.settingLabel}>{item.label}</Text>
-            </TouchableOpacity>
+      {/* Account Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Account</Text>
+        
+        <TouchableOpacity style={styles.settingItem}>
+          <User size={24} color="#666" />
+          <View style={styles.settingContent}>
+            <Text style={styles.settingLabel}>Profile Information</Text>
+          </View>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.settingItem}>
+          <Mail size={24} color="#666" />
+          <View style={styles.settingContent}>
+            <Text style={styles.settingLabel}>Email Preferences</Text>
+          </View>
+        </TouchableOpacity>
+        
+        <TouchableOpacity style={styles.settingItem}>
+          <Lock size={24} color="#666" />
+          <View style={styles.settingContent}>
+            <Text style={styles.settingLabel}>Password & Security</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {/* Preferences Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Preferences</Text>
+        
+        <TouchableOpacity style={styles.settingItem}>
+          <Bell size={24} color="#666" />
+          <View style={styles.settingContent}>
+            <Text style={styles.settingLabel}>Notifications</Text>
+          </View>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.settingItem}
+          onPress={handlePaymentMethodPress}
+        >
+          <CreditCard size={24} color="#666" />
+          <View style={styles.settingContent}>
+            <Text style={styles.settingLabel}>Payment Methods</Text>
+            {savedPaymentMethods.length > 0 && (
+              <Text style={styles.settingDetail}>
+                {savedPaymentMethods.length} {savedPaymentMethods.length === 1 ? 'card' : 'cards'} saved
+              </Text>
+            )}
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {/* Support Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Support</Text>
+        
+        <TouchableOpacity style={styles.settingItem}>
+          <HelpCircle size={24} color="#666" />
+          <View style={styles.settingContent}>
+            <Text style={styles.settingLabel}>Help Center</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+
+      {savedPaymentMethods.length > 0 && (
+        <View style={styles.paymentCardsSection}>
+          <Text style={styles.sectionTitle}>Saved Payment Methods</Text>
+          {savedPaymentMethods.map((method) => (
+            <View key={method.id} style={styles.paymentCard}>
+              <CreditCard size={24} color="#333" />
+              <View style={styles.paymentCardDetails}>
+                <Text style={styles.paymentCardType}>{method.brand}</Text>
+                <Text style={styles.paymentCardNumber}>•••• {method.last4}</Text>
+              </View>
+            </View>
           ))}
         </View>
-      ))}
+      )}
 
       <TouchableOpacity style={styles.signOutButton}>
         <Text style={styles.signOutText}>Sign Out</Text>
       </TouchableOpacity>
+
+      <PaymentMethodModal
+        visible={paymentModalVisible}
+        onClose={() => setPaymentModalVisible(false)}
+        onSave={handleSavePayment}
+      />
+      
+      <SimpleTestModal
+        visible={simpleModalVisible}
+        onClose={() => setSimpleModalVisible(false)}
+      />
     </ScrollView>
   );
 }
@@ -95,10 +206,18 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#eee',
   },
+  settingContent: {
+    flex: 1,
+    marginLeft: 15,
+  },
   settingLabel: {
     fontSize: 16,
-    marginLeft: 15,
     color: '#333',
+  },
+  settingDetail: {
+    fontSize: 14,
+    color: '#999',
+    marginTop: 2,
   },
   signOutButton: {
     margin: 20,
@@ -111,5 +230,48 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  paymentCardsSection: {
+    marginTop: 20,
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#eee',
+  },
+  paymentCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  paymentCardDetails: {
+    marginLeft: 15,
+  },
+  paymentCardType: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+  },
+  paymentCardNumber: {
+    fontSize: 14,
+    color: '#666',
+  },
+  testButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  testButton: {
+    flex: 1,
+    backgroundColor: '#007AFF',
+    padding: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  testButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
