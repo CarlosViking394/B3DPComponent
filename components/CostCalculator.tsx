@@ -131,6 +131,12 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
     PAINTING: 1,
     CLEANING: 1,
   });
+  // Simulated dimensions for the object (in real app, these would come from the file)
+  const [objectDimensions, setObjectDimensions] = useState({
+    width: Math.round(Math.random() * 100 + 50), // 50-150mm
+    height: Math.round(Math.random() * 100 + 50), // 50-150mm
+    depth: Math.round(Math.random() * 100 + 50), // 50-150mm
+  });
   const insets = useSafeAreaInsets();
   const thickness = 0.2; // Fixed layer thickness
 
@@ -214,6 +220,27 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
         }),
       ]}
     >
+      {/* Object Features Card */}
+      <View style={styles.card}>
+        <Text style={styles.title}>Object Features</Text>
+        <View style={styles.objectFeatures}>
+          <View style={styles.featureItem}>
+            <Text style={styles.featureLabel}>File Name</Text>
+            <Text style={styles.featureValue}>{file.name}</Text>
+          </View>
+          <View style={styles.featureItem}>
+            <Text style={styles.featureLabel}>File Size</Text>
+            <Text style={styles.featureValue}>{(file.size / 1024 / 1024).toFixed(2)} MB</Text>
+          </View>
+          <View style={styles.featureItem}>
+            <Text style={styles.featureLabel}>Dimensions</Text>
+            <Text style={styles.featureValue}>
+              {objectDimensions.width} × {objectDimensions.height} × {objectDimensions.depth} mm
+            </Text>
+          </View>
+        </View>
+      </View>
+
       <Text style={styles.title}>Print Settings</Text>
 
       {/* Material Selection */}
@@ -392,6 +419,45 @@ const styles = StyleSheet.create({
   },
   serviceText: {
     fontSize: 14,
+    color: '#333',
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 20,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+      },
+      android: {
+        elevation: 3,
+      },
+      web: {
+        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+      },
+    }),
+  },
+  objectFeatures: {
+    padding: 12,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 8,
+  },
+  featureItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  featureLabel: {
+    fontSize: 14,
+    color: '#666',
+  },
+  featureValue: {
+    fontSize: 14,
+    fontWeight: '600',
     color: '#333',
   },
 });
