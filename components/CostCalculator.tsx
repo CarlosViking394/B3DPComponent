@@ -220,28 +220,26 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
         }),
       ]}
     >
-      {/* Object Features Card */}
-      <View style={styles.card}>
-        <Text style={styles.title}>Object Features</Text>
-        <View style={styles.objectFeatures}>
-          <View style={styles.featureItem}>
-            <Text style={styles.featureLabel}>File Name</Text>
-            <Text style={styles.featureValue}>{file.name}</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <Text style={styles.featureLabel}>File Size</Text>
-            <Text style={styles.featureValue}>{(file.size / 1024 / 1024).toFixed(2)} MB</Text>
-          </View>
-          <View style={styles.featureItem}>
-            <Text style={styles.featureLabel}>Dimensions</Text>
-            <Text style={styles.featureValue}>
-              {objectDimensions.width} × {objectDimensions.height} × {objectDimensions.depth} mm
-            </Text>
-          </View>
+      <Text style={styles.title}>Print Settings</Text>
+      
+      {/* Object Features Section */}
+      <Text style={styles.subTitle}>Object Features</Text>
+      <View style={styles.objectFeatures}>
+        <View style={styles.featureItem}>
+          <Text style={styles.featureLabel}>File Name</Text>
+          <Text style={styles.featureValue}>{file.name}</Text>
+        </View>
+        <View style={styles.featureItem}>
+          <Text style={styles.featureLabel}>File Size</Text>
+          <Text style={styles.featureValue}>{(file.size / 1024 / 1024).toFixed(2)} MB</Text>
+        </View>
+        <View style={styles.featureItem}>
+          <Text style={styles.featureLabel}>Dimensions</Text>
+          <Text style={styles.featureValue}>
+            {objectDimensions.width} × {objectDimensions.height} × {objectDimensions.depth} mm
+          </Text>
         </View>
       </View>
-
-      <Text style={styles.title}>Print Settings</Text>
 
       {/* Material Selection */}
       <View style={styles.setting}>
@@ -341,6 +339,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     color: '#333',
   },
+  subTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+    color: '#555',
+  },
   setting: {
     marginBottom: 20,
   },
@@ -420,25 +424,6 @@ const styles = StyleSheet.create({
   serviceText: {
     fontSize: 14,
     color: '#333',
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-      web: {
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      },
-    }),
   },
   objectFeatures: {
     padding: 12,
