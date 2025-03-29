@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal, ScrollView, Platform, Switch } from 'react-native';
 import { X, Save } from 'lucide-react-native';
+import { useTheme } from './ThemeContext';
 
 interface ProfileInfoModalProps {
   visible: boolean;
@@ -36,6 +37,7 @@ const DEFAULT_PROFILE_DATA: ProfileData = {
 };
 
 export function ProfileInfoModal({ visible, onClose, onSave, initialData }: ProfileInfoModalProps) {
+  const { theme } = useTheme();
   const [profileData, setProfileData] = useState<ProfileData>(initialData || DEFAULT_PROFILE_DATA);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
 
@@ -94,113 +96,145 @@ export function ProfileInfoModal({ visible, onClose, onSave, initialData }: Prof
       visible={visible}
       onRequestClose={onClose}
     >
-      <View style={styles.centeredView}>
-        <View style={styles.modalView}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Profile Information</Text>
+      <View style={[styles.centeredView, { backgroundColor: theme.modalBackground }]}>
+        <View style={[styles.modalView, { backgroundColor: theme.card }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>Profile Information</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <X size={24} color="#333" />
+              <X size={24} color={theme.text} />
             </TouchableOpacity>
           </View>
           
           <ScrollView style={styles.formContainer}>
-            <Text style={styles.sectionTitle}>Personal Information</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Personal Information</Text>
             
-            <Text style={styles.inputLabel}>Full Name</Text>
+            <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>Full Name</Text>
             <TextInput
-              style={[styles.input, errors.fullName ? styles.inputError : null]}
+              style={[
+                styles.input, 
+                { 
+                  backgroundColor: theme.inputBackground, 
+                  borderColor: errors.fullName ? theme.error : theme.border,
+                  color: theme.text,
+                }
+              ]}
               value={profileData.fullName}
               onChangeText={(text) => handleInputChange('fullName', text)}
               placeholder="John Doe"
+              placeholderTextColor={theme.secondaryText}
             />
-            {errors.fullName && <Text style={styles.errorText}>{errors.fullName}</Text>}
+            {errors.fullName && <Text style={[styles.errorText, { color: theme.error }]}>{errors.fullName}</Text>}
             
-            <Text style={styles.inputLabel}>Email</Text>
+            <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>Email</Text>
             <TextInput
-              style={[styles.input, errors.email ? styles.inputError : null]}
+              style={[
+                styles.input, 
+                { 
+                  backgroundColor: theme.inputBackground, 
+                  borderColor: errors.email ? theme.error : theme.border,
+                  color: theme.text,
+                }
+              ]}
               value={profileData.email}
               onChangeText={(text) => handleInputChange('email', text)}
               placeholder="john.doe@example.com"
+              placeholderTextColor={theme.secondaryText}
               keyboardType="email-address"
               autoCapitalize="none"
             />
-            {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
+            {errors.email && <Text style={[styles.errorText, { color: theme.error }]}>{errors.email}</Text>}
             
-            <Text style={styles.inputLabel}>Phone (optional)</Text>
+            <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>Phone (optional)</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input, 
+                { 
+                  backgroundColor: theme.inputBackground, 
+                  borderColor: theme.border,
+                  color: theme.text,
+                }
+              ]}
               value={profileData.phone}
               onChangeText={(text) => handleInputChange('phone', text)}
               placeholder="+1 (555) 123-4567"
+              placeholderTextColor={theme.secondaryText}
               keyboardType="phone-pad"
             />
             
-            <Text style={styles.inputLabel}>Address</Text>
+            <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>Address</Text>
             <TextInput
-              style={[styles.input, errors.address ? styles.inputError : null]}
+              style={[
+                styles.input, 
+                { 
+                  backgroundColor: theme.inputBackground, 
+                  borderColor: errors.address ? theme.error : theme.border,
+                  color: theme.text,
+                }
+              ]}
               value={profileData.address}
               onChangeText={(text) => handleInputChange('address', text)}
               placeholder="123 Main St, Brisbane QLD 4000"
+              placeholderTextColor={theme.secondaryText}
               multiline
             />
-            {errors.address && <Text style={styles.errorText}>{errors.address}</Text>}
+            {errors.address && <Text style={[styles.errorText, { color: theme.error }]}>{errors.address}</Text>}
             
-            <Text style={styles.sectionTitle}>Email Preferences</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Email Preferences</Text>
             
-            <View style={styles.preferenceItem}>
+            <View style={[styles.preferenceItem, { borderBottomColor: theme.border }]}>
               <View style={styles.preferenceTextContainer}>
-                <Text style={styles.preferenceName}>Order Updates</Text>
-                <Text style={styles.preferenceDescription}>Get notified about your 3D printing orders</Text>
+                <Text style={[styles.preferenceName, { color: theme.text }]}>Order Updates</Text>
+                <Text style={[styles.preferenceDescription, { color: theme.secondaryText }]}>Get notified about your 3D printing orders</Text>
               </View>
               <Switch
                 value={profileData.emailPreferences.orderUpdates}
                 onValueChange={(value) => handleEmailPrefChange('orderUpdates', value)}
-                trackColor={{ false: '#ddd', true: '#4CAF50' }}
+                trackColor={{ false: '#767577', true: theme.accent }}
                 thumbColor="#fff"
               />
             </View>
             
-            <View style={styles.preferenceItem}>
+            <View style={[styles.preferenceItem, { borderBottomColor: theme.border }]}>
               <View style={styles.preferenceTextContainer}>
-                <Text style={styles.preferenceName}>Promotional Emails</Text>
-                <Text style={styles.preferenceDescription}>Receive special offers and discounts</Text>
+                <Text style={[styles.preferenceName, { color: theme.text }]}>Promotional Emails</Text>
+                <Text style={[styles.preferenceDescription, { color: theme.secondaryText }]}>Receive special offers and discounts</Text>
               </View>
               <Switch
                 value={profileData.emailPreferences.promotions}
                 onValueChange={(value) => handleEmailPrefChange('promotions', value)}
-                trackColor={{ false: '#ddd', true: '#4CAF50' }}
+                trackColor={{ false: '#767577', true: theme.accent }}
                 thumbColor="#fff"
               />
             </View>
             
-            <View style={styles.preferenceItem}>
+            <View style={[styles.preferenceItem, { borderBottomColor: theme.border }]}>
               <View style={styles.preferenceTextContainer}>
-                <Text style={styles.preferenceName}>Newsletter</Text>
-                <Text style={styles.preferenceDescription}>Monthly updates and community news</Text>
+                <Text style={[styles.preferenceName, { color: theme.text }]}>Newsletter</Text>
+                <Text style={[styles.preferenceDescription, { color: theme.secondaryText }]}>Monthly updates and community news</Text>
               </View>
               <Switch
                 value={profileData.emailPreferences.newsletter}
                 onValueChange={(value) => handleEmailPrefChange('newsletter', value)}
-                trackColor={{ false: '#ddd', true: '#4CAF50' }}
+                trackColor={{ false: '#767577', true: theme.accent }}
                 thumbColor="#fff"
               />
             </View>
             
-            <View style={styles.preferenceItem}>
+            <View style={[styles.preferenceItem, { borderBottomColor: theme.border }]}>
               <View style={styles.preferenceTextContainer}>
-                <Text style={styles.preferenceName}>3D Printing Tips</Text>
-                <Text style={styles.preferenceDescription}>Tips to improve your 3D printing</Text>
+                <Text style={[styles.preferenceName, { color: theme.text }]}>3D Printing Tips</Text>
+                <Text style={[styles.preferenceDescription, { color: theme.secondaryText }]}>Tips to improve your 3D printing</Text>
               </View>
               <Switch
                 value={profileData.emailPreferences.printingTips}
                 onValueChange={(value) => handleEmailPrefChange('printingTips', value)}
-                trackColor={{ false: '#ddd', true: '#4CAF50' }}
+                trackColor={{ false: '#767577', true: theme.accent }}
                 thumbColor="#fff"
               />
             </View>
           </ScrollView>
           
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+          <TouchableOpacity style={[styles.saveButton, { backgroundColor: theme.accent }]} onPress={handleSave}>
             <Save size={20} color="#fff" style={styles.saveIcon} />
             <Text style={styles.saveButtonText}>Save Profile</Text>
           </TouchableOpacity>

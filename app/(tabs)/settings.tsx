@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Bell, CreditCard, CircleHelp as HelpCircle, Lock, Mail, User } from 'lucide-react-native';
+import { useRouter } from 'expo-router';
 import { PaymentMethodModal } from '../../components/PaymentMethodModal';
 import { ProfileInfoModal, ProfileData } from '../../components/ProfileInfoModal';
+import { ThemeToggle } from '../../components/ThemeToggle';
+import { useTheme } from '../../components/ThemeContext';
 
 export default function SettingsScreen() {
+  const router = useRouter();
+  const { theme } = useTheme();
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const [profileModalVisible, setProfileModalVisible] = useState(false);
   const [savedPaymentMethods, setSavedPaymentMethods] = useState<Array<{id: string, last4: string, brand: string}>>([]);
@@ -48,25 +53,25 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Settings</Text>
-        <Text style={styles.headerSubtitle}>Manage your account and preferences</Text>
+    <ScrollView style={[styles.container, { backgroundColor: theme.surface }]}>
+      <View style={[styles.header, { backgroundColor: theme.card, borderBottomColor: theme.border }]}>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Settings</Text>
+        <Text style={[styles.headerSubtitle, { color: theme.secondaryText }]}>Manage your account and preferences</Text>
       </View>
 
       {/* Account Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account</Text>
+      <View style={[styles.section, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        <Text style={[styles.sectionTitle, { color: theme.text, backgroundColor: theme.surface }]}>Account</Text>
         
         <TouchableOpacity 
-          style={styles.settingItem}
+          style={[styles.settingItem, { borderTopColor: theme.border }]}
           onPress={handleProfilePress}
         >
-          <User size={24} color="#666" />
+          <User size={24} color={theme.secondaryText} />
           <View style={styles.settingContent}>
-            <Text style={styles.settingLabel}>Profile Information</Text>
+            <Text style={[styles.settingLabel, { color: theme.text }]}>Profile Information</Text>
             {profileData && (
-              <Text style={styles.settingDetail}>
+              <Text style={[styles.settingDetail, { color: theme.secondaryText }]}>
                 {profileData.fullName}
                 {Object.values(profileData.emailPreferences).filter(Boolean).length > 0 && 
                   ` • ${Object.values(profileData.emailPreferences).filter(Boolean).length} email preferences`}
@@ -75,62 +80,67 @@ export default function SettingsScreen() {
           </View>
         </TouchableOpacity>
         
-        <TouchableOpacity style={styles.settingItem}>
-          <Lock size={24} color="#666" />
+        <TouchableOpacity style={[styles.settingItem, { borderTopColor: theme.border }]}>
+          <Lock size={24} color={theme.secondaryText} />
           <View style={styles.settingContent}>
-            <Text style={styles.settingLabel}>Password & Security</Text>
+            <Text style={[styles.settingLabel, { color: theme.text }]}>Password & Security</Text>
           </View>
         </TouchableOpacity>
       </View>
 
       {/* Preferences Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Preferences</Text>
+      <View style={[styles.section, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        <Text style={[styles.sectionTitle, { color: theme.text, backgroundColor: theme.surface }]}>Preferences</Text>
         
-        <TouchableOpacity style={styles.settingItem}>
-          <Bell size={24} color="#666" />
+        <TouchableOpacity style={[styles.settingItem, { borderTopColor: theme.border }]}>
+          <Bell size={24} color={theme.secondaryText} />
           <View style={styles.settingContent}>
-            <Text style={styles.settingLabel}>Notifications</Text>
+            <Text style={[styles.settingLabel, { color: theme.text }]}>Notifications</Text>
           </View>
         </TouchableOpacity>
         
         <TouchableOpacity 
-          style={styles.settingItem}
+          style={[styles.settingItem, { borderTopColor: theme.border }]}
           onPress={handlePaymentMethodPress}
         >
-          <CreditCard size={24} color="#666" />
+          <CreditCard size={24} color={theme.secondaryText} />
           <View style={styles.settingContent}>
-            <Text style={styles.settingLabel}>Payment Methods</Text>
+            <Text style={[styles.settingLabel, { color: theme.text }]}>Payment Methods</Text>
             {savedPaymentMethods.length > 0 && (
-              <Text style={styles.settingDetail}>
+              <Text style={[styles.settingDetail, { color: theme.secondaryText }]}>
                 {savedPaymentMethods.length} {savedPaymentMethods.length === 1 ? 'card' : 'cards'} saved
               </Text>
             )}
           </View>
         </TouchableOpacity>
+
+        {/* Theme Toggle */}
+        <View style={[styles.settingItem, { borderTopColor: theme.border }]}>
+          <ThemeToggle style={{ flex: 1 }} />
+        </View>
       </View>
 
       {/* Support Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Support</Text>
+      <View style={[styles.section, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        <Text style={[styles.sectionTitle, { color: theme.text, backgroundColor: theme.surface }]}>Support</Text>
         
-        <TouchableOpacity style={styles.settingItem}>
-          <HelpCircle size={24} color="#666" />
+        <TouchableOpacity style={[styles.settingItem, { borderTopColor: theme.border }]}>
+          <HelpCircle size={24} color={theme.secondaryText} />
           <View style={styles.settingContent}>
-            <Text style={styles.settingLabel}>Help Center</Text>
+            <Text style={[styles.settingLabel, { color: theme.text }]}>Help Center</Text>
           </View>
         </TouchableOpacity>
       </View>
 
       {savedPaymentMethods.length > 0 && (
-        <View style={styles.paymentCardsSection}>
-          <Text style={styles.sectionTitle}>Saved Payment Methods</Text>
+        <View style={[styles.paymentCardsSection, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <Text style={[styles.sectionTitle, { color: theme.text, backgroundColor: theme.surface }]}>Saved Payment Methods</Text>
           {savedPaymentMethods.map((method) => (
-            <View key={method.id} style={styles.paymentCard}>
-              <CreditCard size={24} color="#333" />
+            <View key={method.id} style={[styles.paymentCard, { borderTopColor: theme.border }]}>
+              <CreditCard size={24} color={theme.text} />
               <View style={styles.paymentCardDetails}>
-                <Text style={styles.paymentCardType}>{method.brand}</Text>
-                <Text style={styles.paymentCardNumber}>•••• {method.last4}</Text>
+                <Text style={[styles.paymentCardType, { color: theme.text }]}>{method.brand}</Text>
+                <Text style={[styles.paymentCardNumber, { color: theme.secondaryText }]}>•••• {method.last4}</Text>
               </View>
             </View>
           ))}

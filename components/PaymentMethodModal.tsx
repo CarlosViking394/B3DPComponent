@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Modal, ScrollView, Platform } from 'react-native';
 import { CreditCard, X } from 'lucide-react-native';
+import { useTheme } from './ThemeContext';
 
 interface PaymentMethodModalProps {
   visible: boolean;
@@ -20,6 +21,7 @@ interface PaymentDetails {
 }
 
 export function PaymentMethodModal({ visible, onClose, onSave }: PaymentMethodModalProps) {
+  const { theme } = useTheme();
   const [cardNumber, setCardNumber] = useState('');
   const [cardName, setCardName] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
@@ -139,116 +141,180 @@ export function PaymentMethodModal({ visible, onClose, onSave }: PaymentMethodMo
       visible={visible}
       onRequestClose={onClose}
     >
-      <View style={styles.centeredView}>
-        <View style={styles.modalView}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Add Payment Method</Text>
+      <View style={[styles.centeredView, { backgroundColor: theme.modalBackground }]}>
+        <View style={[styles.modalView, { backgroundColor: theme.card }]}>
+          <View style={[styles.modalHeader, { borderBottomColor: theme.border }]}>
+            <Text style={[styles.modalTitle, { color: theme.text }]}>Add Payment Method</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <X size={24} color="#333" />
+              <X size={24} color={theme.text} />
             </TouchableOpacity>
           </View>
           
           <ScrollView style={styles.formContainer}>
             <View style={styles.cardSection}>
-              <CreditCard size={32} color="#666" style={styles.cardIcon} />
-              <Text style={styles.sectionTitle}>Card Details</Text>
+              <CreditCard size={32} color={theme.secondaryText} style={styles.cardIcon} />
+              <Text style={[styles.sectionTitle, { color: theme.text }]}>Card Details</Text>
             </View>
             
-            <Text style={styles.inputLabel}>Card Number</Text>
+            <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>Card Number</Text>
             <TextInput
-              style={[styles.input, errors.cardNumber ? styles.inputError : null]}
+              style={[
+                styles.input, 
+                { 
+                  backgroundColor: theme.inputBackground, 
+                  borderColor: errors.cardNumber ? theme.error : theme.border,
+                  color: theme.text
+                }
+              ]}
               value={cardNumber}
               onChangeText={(text) => setCardNumber(formatCardNumber(text))}
               placeholder="1234 5678 9012 3456"
+              placeholderTextColor={theme.secondaryText}
               keyboardType="numeric"
               maxLength={19}
             />
-            {errors.cardNumber && <Text style={styles.errorText}>{errors.cardNumber}</Text>}
+            {errors.cardNumber && <Text style={[styles.errorText, { color: theme.error }]}>{errors.cardNumber}</Text>}
             
-            <Text style={styles.inputLabel}>Name on Card</Text>
+            <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>Name on Card</Text>
             <TextInput
-              style={[styles.input, errors.cardName ? styles.inputError : null]}
+              style={[
+                styles.input, 
+                { 
+                  backgroundColor: theme.inputBackground, 
+                  borderColor: errors.cardName ? theme.error : theme.border,
+                  color: theme.text
+                }
+              ]}
               value={cardName}
               onChangeText={setCardName}
               placeholder="John Doe"
+              placeholderTextColor={theme.secondaryText}
             />
-            {errors.cardName && <Text style={styles.errorText}>{errors.cardName}</Text>}
+            {errors.cardName && <Text style={[styles.errorText, { color: theme.error }]}>{errors.cardName}</Text>}
             
             <View style={styles.row}>
               <View style={styles.halfInput}>
-                <Text style={styles.inputLabel}>Expiry Date</Text>
+                <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>Expiry Date</Text>
                 <TextInput
-                  style={[styles.input, errors.expiryDate ? styles.inputError : null]}
+                  style={[
+                    styles.input, 
+                    { 
+                      backgroundColor: theme.inputBackground, 
+                      borderColor: errors.expiryDate ? theme.error : theme.border,
+                      color: theme.text
+                    }
+                  ]}
                   value={expiryDate}
                   onChangeText={(text) => setExpiryDate(formatExpiryDate(text))}
                   placeholder="MM/YY"
+                  placeholderTextColor={theme.secondaryText}
                   keyboardType="numeric"
                   maxLength={5}
                 />
-                {errors.expiryDate && <Text style={styles.errorText}>{errors.expiryDate}</Text>}
+                {errors.expiryDate && <Text style={[styles.errorText, { color: theme.error }]}>{errors.expiryDate}</Text>}
               </View>
               
               <View style={styles.halfInput}>
-                <Text style={styles.inputLabel}>CVV</Text>
+                <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>CVV</Text>
                 <TextInput
-                  style={[styles.input, errors.cvv ? styles.inputError : null]}
+                  style={[
+                    styles.input, 
+                    { 
+                      backgroundColor: theme.inputBackground, 
+                      borderColor: errors.cvv ? theme.error : theme.border,
+                      color: theme.text
+                    }
+                  ]}
                   value={cvv}
                   onChangeText={setCvv}
                   placeholder="123"
+                  placeholderTextColor={theme.secondaryText}
                   keyboardType="numeric"
                   maxLength={4}
                   secureTextEntry
                 />
-                {errors.cvv && <Text style={styles.errorText}>{errors.cvv}</Text>}
+                {errors.cvv && <Text style={[styles.errorText, { color: theme.error }]}>{errors.cvv}</Text>}
               </View>
             </View>
             
-            <Text style={styles.sectionTitle}>Billing Address</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Billing Address</Text>
             
-            <Text style={styles.inputLabel}>Street Address</Text>
+            <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>Street Address</Text>
             <TextInput
-              style={[styles.input, errors.billingAddress ? styles.inputError : null]}
+              style={[
+                styles.input, 
+                { 
+                  backgroundColor: theme.inputBackground, 
+                  borderColor: errors.billingAddress ? theme.error : theme.border,
+                  color: theme.text
+                }
+              ]}
               value={billingAddress}
               onChangeText={setBillingAddress}
               placeholder="123 Main St"
+              placeholderTextColor={theme.secondaryText}
             />
-            {errors.billingAddress && <Text style={styles.errorText}>{errors.billingAddress}</Text>}
+            {errors.billingAddress && <Text style={[styles.errorText, { color: theme.error }]}>{errors.billingAddress}</Text>}
             
-            <Text style={styles.inputLabel}>City</Text>
+            <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>City</Text>
             <TextInput
-              style={[styles.input, errors.city ? styles.inputError : null]}
+              style={[
+                styles.input, 
+                { 
+                  backgroundColor: theme.inputBackground, 
+                  borderColor: errors.city ? theme.error : theme.border,
+                  color: theme.text
+                }
+              ]}
               value={city}
               onChangeText={setCity}
               placeholder="Brisbane"
+              placeholderTextColor={theme.secondaryText}
             />
-            {errors.city && <Text style={styles.errorText}>{errors.city}</Text>}
+            {errors.city && <Text style={[styles.errorText, { color: theme.error }]}>{errors.city}</Text>}
             
             <View style={styles.row}>
               <View style={styles.halfInput}>
-                <Text style={styles.inputLabel}>Postal Code</Text>
+                <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>Postal Code</Text>
                 <TextInput
-                  style={[styles.input, errors.postalCode ? styles.inputError : null]}
+                  style={[
+                    styles.input, 
+                    { 
+                      backgroundColor: theme.inputBackground, 
+                      borderColor: errors.postalCode ? theme.error : theme.border,
+                      color: theme.text
+                    }
+                  ]}
                   value={postalCode}
                   onChangeText={setPostalCode}
                   placeholder="4000"
+                  placeholderTextColor={theme.secondaryText}
                 />
-                {errors.postalCode && <Text style={styles.errorText}>{errors.postalCode}</Text>}
+                {errors.postalCode && <Text style={[styles.errorText, { color: theme.error }]}>{errors.postalCode}</Text>}
               </View>
               
               <View style={styles.halfInput}>
-                <Text style={styles.inputLabel}>Country</Text>
+                <Text style={[styles.inputLabel, { color: theme.secondaryText }]}>Country</Text>
                 <TextInput
-                  style={[styles.input, errors.country ? styles.inputError : null]}
+                  style={[
+                    styles.input, 
+                    { 
+                      backgroundColor: theme.inputBackground, 
+                      borderColor: errors.country ? theme.error : theme.border,
+                      color: theme.text
+                    }
+                  ]}
                   value={country}
                   onChangeText={setCountry}
                   placeholder="Australia"
+                  placeholderTextColor={theme.secondaryText}
                 />
-                {errors.country && <Text style={styles.errorText}>{errors.country}</Text>}
+                {errors.country && <Text style={[styles.errorText, { color: theme.error }]}>{errors.country}</Text>}
               </View>
             </View>
           </ScrollView>
           
-          <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+          <TouchableOpacity style={[styles.saveButton, { backgroundColor: theme.accent }]} onPress={handleSave}>
             <Text style={styles.saveButtonText}>Save Payment Method</Text>
           </TouchableOpacity>
         </View>

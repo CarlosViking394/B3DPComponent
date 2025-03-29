@@ -2,8 +2,10 @@ import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ThemeProvider } from '@rneui/themed';
+import { ThemeProvider as RNeUIThemeProvider } from '@rneui/themed';
 import { View } from 'react-native';
+import { Slider } from '@rneui/themed';
+import { ThemeProvider, useTheme } from '../components/ThemeContext';
 
 declare global {
   interface Window {
@@ -35,24 +37,32 @@ function MySlider({
     />;
 }
 
-export default function RootLayout() {
+// Wrap the layout with our custom ThemeProvider
+function AppLayout() {
+  const { theme, isDarkMode } = useTheme();
+  
   useEffect(() => {
     window.frameworkReady?.();
   }, []);
 
   return (
     <SafeAreaProvider>
-      <ThemeProvider>
-        <View style={{ flex: 1 }}>
-          <StatusBar style="auto" />
+      <RNeUIThemeProvider>
+        <View style={{ flex: 1, backgroundColor: theme.background }}>
+          <StatusBar style={isDarkMode ? 'light' : 'dark'} />
           <Stack 
             screenOptions={{
               contentStyle: {
                 paddingTop: 0,
-                paddingBottom: 0
+                paddingBottom: 0,
+                backgroundColor: theme.background,
               },
               headerShown: true,
-              headerTitle: ""
+              headerTitle: "",
+              headerStyle: {
+                backgroundColor: theme.card,
+              },
+              headerTintColor: theme.text,
             }}
           >
             <Stack.Screen 
@@ -63,9 +73,24 @@ export default function RootLayout() {
               }}
             />
             <Stack.Screen name="materialDetails" />
+            <Stack.Screen 
+              name="profile" 
+              options={{
+                headerShown: false,
+              }}
+            />
           </Stack>
         </View>
-      </ThemeProvider>
+      </RNeUIThemeProvider>
     </SafeAreaProvider>
+  );
+}
+
+// Root layout with ThemeProvider wrapper
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <AppLayout />
+    </ThemeProvider>
   );
 }
