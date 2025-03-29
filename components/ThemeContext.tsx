@@ -1,36 +1,15 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import { useColorScheme } from 'react-native';
+import React, { createContext, useContext } from 'react';
 
-// Define theme colors
-export const lightTheme = {
-  background: '#FFFFFF',
-  surface: '#F5F5F5',
-  card: '#FFFFFF',
-  text: '#333333',
-  secondaryText: '#666666',
-  accent: '#4CAF50',
-  border: '#EEEEEE',
-  error: '#FF3B30',
-  success: '#4CAF50',
-  warning: '#FF9800',
-  info: '#2196F3',
-  divider: '#EEEEEE',
-  inputBackground: '#F5F5F5',
-  modalBackground: 'rgba(0, 0, 0, 0.5)',
-  statusBar: 'dark',
-  tabBarBackground: '#FFFFFF',
-  tabBarInactive: '#CCCCCC',
-  tabBarActive: '#4CAF50',
-  shadow: 'rgba(0, 0, 0, 0.1)',
-};
-
+// Define the dark theme colors
 export const darkTheme = {
   background: '#121212',
   surface: '#1E1E1E',
   card: '#242424',
+  cardAlt: '#2A2A2A',
   text: '#E1E1E1',
   secondaryText: '#A0A0A0',
-  accent: '#4CAF50',
+  accent: '#0088FF',
+  accentLight: '#154B72',
   border: '#333333',
   error: '#FF453A',
   success: '#32D74B',
@@ -42,51 +21,37 @@ export const darkTheme = {
   statusBar: 'light',
   tabBarBackground: '#1E1E1E',
   tabBarInactive: '#666666',
-  tabBarActive: '#4CAF50',
+  tabBarActive: '#0088FF',
   shadow: 'rgba(0, 0, 0, 0.3)',
+  progressBar: '#0088FF',
+  progressBackground: '#444444',
+  cardShadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
 };
 
 // Theme context
 interface ThemeContextType {
-  theme: typeof lightTheme;
-  isDarkMode: boolean;
-  toggleTheme: () => void;
-  setDarkMode: (isDark: boolean) => void;
+  theme: typeof darkTheme;
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: lightTheme,
-  isDarkMode: false,
-  toggleTheme: () => {},
-  setDarkMode: () => {},
+  theme: darkTheme,
 });
 
 // Theme provider component
 export const ThemeProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
-  // Get device color scheme
-  const deviceColorScheme = useColorScheme();
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(deviceColorScheme === 'dark');
-
-  // Toggle theme function
-  const toggleTheme = () => {
-    setIsDarkMode(prevMode => !prevMode);
-  };
-
-  // Set dark mode directly
-  const setDarkMode = (isDark: boolean) => {
-    setIsDarkMode(isDark);
-  };
-
-  // Get current theme
-  const theme = isDarkMode ? darkTheme : lightTheme;
+  // Always use dark theme
+  const theme = darkTheme;
 
   return (
     <ThemeContext.Provider
       value={{
         theme,
-        isDarkMode,
-        toggleTheme,
-        setDarkMode,
       }}
     >
       {children}

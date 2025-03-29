@@ -1,10 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ImageBackground } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { Printer, Clock, Palette, Award } from 'lucide-react-native';
+import { Printer, Clock, Palette, Award, Upload, ArrowRight } from 'lucide-react-native';
+import { useTheme } from '../../components/ThemeContext';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { theme } = useTheme();
 
   const handleMaterialPress = (materialType: string) => {
     router.push({
@@ -14,52 +16,67 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.hero}>
-        <Image
-          source={{ uri: 'https://images.unsplash.com/photo-1631733158067-8aa489c4d0e5?auto=format&fit=crop&q=80&w=2000' }}
+        <Image 
+          source={require('../../assets/images/printing.webp')}
           style={styles.heroImage}
         />
-        <View style={styles.heroContent}>
-          <Text style={styles.heroTitle}>3D Printing Made Simple</Text>
-          <Text style={styles.heroSubtitle}>Upload, Customize, Print</Text>
-          <Link href="/upload" asChild>
-            <TouchableOpacity style={styles.heroButton}>
-              <Text style={styles.heroButtonText}>Start Printing</Text>
-            </TouchableOpacity>
-          </Link>
+        <View style={[styles.heroOverlay, { backgroundColor: 'rgba(0,0,0,0.55)' }]}>
+          <View style={styles.heroContent}>
+            <Text style={[styles.heroTitle, { color: theme.text }]}>3D Printing Made Simple</Text>
+            <Text style={[styles.heroSubtitle, { color: theme.text }]}>Upload, Customize, Print</Text>
+            <Link href="/upload" asChild>
+              <TouchableOpacity style={[styles.heroButton, { backgroundColor: theme.accent }]}>
+                <Text style={[styles.heroButtonText, { color: theme.text }]}>Start Printing</Text>
+              </TouchableOpacity>
+            </Link>
+          </View>
         </View>
       </View>
 
       <View style={styles.features}>
-        <Text style={styles.sectionTitle}>Why Choose Us?</Text>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Why Choose Us?</Text>
         <View style={styles.featureGrid}>
-          <View style={styles.featureCard}>
-            <Printer size={32} color="#007AFF" />
-            <Text style={styles.featureTitle}>High Quality</Text>
-            <Text style={styles.featureText}>Professional grade 3D printing with premium materials</Text>
+          <View style={[styles.featureCard, { backgroundColor: theme.card, ...theme.cardShadow }]}>
+            <View style={[styles.featureIconContainer, { backgroundColor: theme.accentLight }]}>
+              <Printer size={32} color={theme.accent} />
+            </View>
+            <Text style={[styles.featureTitle, { color: theme.text }]}>High Quality</Text>
+            <Text style={[styles.featureText, { color: theme.secondaryText }]}>Professional grade 3D printing with premium materials</Text>
           </View>
-          <View style={styles.featureCard}>
-            <Clock size={32} color="#007AFF" />
-            <Text style={styles.featureTitle}>Fast Turnaround</Text>
-            <Text style={styles.featureText}>Quick printing and delivery of your models</Text>
+          <View style={[styles.featureCard, { backgroundColor: theme.card, ...theme.cardShadow }]}>
+            <View style={[styles.featureIconContainer, { backgroundColor: theme.accentLight }]}>
+              <Clock size={32} color={theme.accent} />
+            </View>
+            <Text style={[styles.featureTitle, { color: theme.text }]}>Fast Turnaround</Text>
+            <Text style={[styles.featureText, { color: theme.secondaryText }]}>Quick printing and delivery of your models</Text>
           </View>
-          <View style={styles.featureCard}>
-            <Palette size={32} color="#007AFF" />
-            <Text style={styles.featureTitle}>Custom Colors</Text>
-            <Text style={styles.featureText}>Wide range of colors and materials to choose from</Text>
+          <View style={[styles.featureCard, { backgroundColor: theme.card, ...theme.cardShadow }]}>
+            <View style={[styles.featureIconContainer, { backgroundColor: theme.accentLight }]}>
+              <Palette size={32} color={theme.accent} />
+            </View>
+            <Text style={[styles.featureTitle, { color: theme.text }]}>Custom Colors</Text>
+            <Text style={[styles.featureText, { color: theme.secondaryText }]}>Wide range of colors and materials to choose from</Text>
           </View>
-          <View style={styles.featureCard}>
-            <Award size={32} color="#007AFF" />
-            <Text style={styles.featureTitle}>Guaranteed</Text>
-            <Text style={styles.featureText}>100% satisfaction guarantee on all prints</Text>
+          <View style={[styles.featureCard, { backgroundColor: theme.card, ...theme.cardShadow }]}>
+            <View style={[styles.featureIconContainer, { backgroundColor: theme.accentLight }]}>
+              <Award size={32} color={theme.accent} />
+            </View>
+            <Text style={[styles.featureTitle, { color: theme.text }]}>Guaranteed</Text>
+            <Text style={[styles.featureText, { color: theme.secondaryText }]}>100% satisfaction guarantee on all prints</Text>
           </View>
         </View>
       </View>
 
       <View style={styles.materials}>
-        <Text style={styles.sectionTitle}>Available Materials</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.materialScroll}>
+        <Text style={[styles.sectionTitle, { color: theme.text }]}>Available Materials</Text>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false} 
+          style={styles.materialScroll}
+          contentContainerStyle={styles.materialScrollContent}
+        >
           {[
             {
               name: 'PLA',
@@ -85,22 +102,32 @@ export default function HomeScreen() {
             <TouchableOpacity
               key={index}
               onPress={() => handleMaterialPress(material.name)}
-              style={styles.materialCard}
+              style={[styles.materialCard, { backgroundColor: theme.card, ...theme.cardShadow }]}
+              activeOpacity={0.8}
             >
               <Image source={{ uri: material.image }} style={styles.materialImage} />
-              <Text style={styles.materialName}>{material.name}</Text>
-              <Text style={styles.materialPrice}>${material.price}</Text>
+              <View style={styles.materialInfo}>
+                <Text style={[styles.materialName, { color: theme.text }]}>{material.name}</Text>
+                <Text style={[styles.materialPrice, { color: theme.accent }]}>${material.price}</Text>
+              </View>
             </TouchableOpacity>
           ))}
         </ScrollView>
       </View>
 
-      <View style={styles.cta}>
-        <Text style={styles.ctaTitle}>Ready to Print?</Text>
-        <Text style={styles.ctaText}>Upload your 3D model and get an instant quote</Text>
+      <View style={[styles.cta, { backgroundColor: theme.accent }]}>
+        <Text style={[styles.ctaTitle, { color: theme.text }]}>Ready to Print?</Text>
+        <Text style={[styles.ctaText, { color: theme.text }]}>Upload your 3D model and get an instant quote</Text>
         <Link href="/upload" asChild>
-          <TouchableOpacity style={styles.ctaButton}>
-            <Text style={styles.ctaButtonText}>Upload Now</Text>
+          <TouchableOpacity activeOpacity={0.7}>
+            <View style={[styles.ctaWhiteButton, { 
+              backgroundColor: theme.card,
+              shadowColor: theme.accent,
+              borderColor: theme.border
+            }]}>
+              <Text style={[styles.ctaWhiteButtonText, { color: theme.accent }]}>Let's Go</Text>
+              <ArrowRight size={20} color={theme.accent} style={styles.ctaButtonArrow} />
+            </View>
           </TouchableOpacity>
         </Link>
       </View>
@@ -111,144 +138,192 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   hero: {
-    height: 400,
+    height: 500,
     position: 'relative',
   },
   heroImage: {
     width: '100%',
     height: '100%',
     position: 'absolute',
+    resizeMode: 'cover',
   },
-  heroContent: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+  heroOverlay: {
+    position: 'absolute',
+    width: '100%', 
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+  },
+  heroContent: {
+    width: '100%',
+    padding: 30,
+    alignItems: 'center',
   },
   heroTitle: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#fff',
     textAlign: 'center',
     marginBottom: 10,
   },
   heroSubtitle: {
     fontSize: 18,
-    color: '#fff',
     textAlign: 'center',
     marginBottom: 20,
   },
   heroButton: {
-    backgroundColor: '#007AFF',
     paddingHorizontal: 30,
     paddingVertical: 15,
     borderRadius: 25,
   },
   heroButtonText: {
-    color: '#fff',
     fontSize: 18,
     fontWeight: '600',
   },
   features: {
     padding: 20,
+    marginVertical: 10,
   },
   sectionTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    color: '#333',
+    textAlign: 'center',
   },
   featureGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -10,
+    justifyContent: 'space-between',
+    marginHorizontal: -8,
   },
   featureCard: {
-    width: '50%',
-    padding: 10,
+    width: '48%',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+    marginHorizontal: 4,
+    alignItems: 'center',
+  },
+  featureIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   featureTitle: {
     fontSize: 18,
     fontWeight: '600',
     marginTop: 10,
-    marginBottom: 5,
-    color: '#333',
+    marginBottom: 8,
+    textAlign: 'center',
   },
   featureText: {
     fontSize: 14,
-    color: '#666',
     lineHeight: 20,
+    textAlign: 'center',
   },
   materials: {
     padding: 20,
+    marginVertical: 10,
   },
   materialScroll: {
     marginHorizontal: -20,
+  },
+  materialScrollContent: {
     paddingHorizontal: 20,
+    paddingBottom: 10,
   },
   materialCard: {
-    width: 200,
-    marginRight: 15,
-    backgroundColor: '#fff',
-    borderRadius: 10,
+    width: 220,
+    marginRight: 16,
+    borderRadius: 12,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    marginVertical: 8,
   },
   materialImage: {
     width: '100%',
-    height: 150,
+    height: 160,
+  },
+  materialInfo: {
+    padding: 12,
   },
   materialName: {
     fontSize: 18,
     fontWeight: '600',
-    padding: 10,
-    color: '#333',
+    marginBottom: 4,
   },
   materialPrice: {
     fontSize: 16,
-    color: '#007AFF',
-    paddingHorizontal: 10,
-    paddingBottom: 10,
+    fontWeight: '500',
   },
   cta: {
     margin: 20,
     padding: 30,
-    backgroundColor: '#007AFF',
     borderRadius: 15,
     alignItems: 'center',
+    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
   },
   ctaTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
     marginBottom: 10,
   },
   ctaText: {
     fontSize: 16,
-    color: '#fff',
     textAlign: 'center',
     marginBottom: 20,
   },
+  ctaWhiteButton: {
+    paddingHorizontal: 40,
+    paddingVertical: 16,
+    borderRadius: 25,
+    elevation: 8,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    minWidth: 220,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    borderWidth: 2,
+  },
+  ctaWhiteButtonText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginRight: 8,
+  },
+  ctaButtonArrow: {
+    marginLeft: 2,
+  },
   ctaButton: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 30,
+    paddingHorizontal: 32,
     paddingVertical: 15,
     borderRadius: 25,
+    elevation: 6,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    minWidth: 200,
+    borderWidth: 2,
+    transform: [{ translateY: 0 }],
+  },
+  ctaButtonInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaButtonIcon: {
+    marginRight: 8,
   },
   ctaButtonText: {
-    color: '#007AFF',
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

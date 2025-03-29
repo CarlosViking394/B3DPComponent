@@ -4,7 +4,6 @@ import { Bell, CreditCard, CircleHelp as HelpCircle, Lock, Mail, User } from 'lu
 import { useRouter } from 'expo-router';
 import { PaymentMethodModal } from '../../components/PaymentMethodModal';
 import { ProfileInfoModal, ProfileData } from '../../components/ProfileInfoModal';
-import { ThemeToggle } from '../../components/ThemeToggle';
 import { useTheme } from '../../components/ThemeContext';
 
 export default function SettingsScreen() {
@@ -113,11 +112,6 @@ export default function SettingsScreen() {
             )}
           </View>
         </TouchableOpacity>
-
-        {/* Theme Toggle */}
-        <View style={[styles.settingItem, { borderTopColor: theme.border }]}>
-          <ThemeToggle style={{ flex: 1 }} />
-        </View>
       </View>
 
       {/* Support Section */}

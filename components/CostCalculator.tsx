@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Location from 'expo-location';
+import { useTheme } from './ThemeContext';
 
 interface CostCalculatorProps {
   file: {
@@ -115,6 +116,7 @@ function getTieredPrice(
 }
 
 export function CostCalculator({ file, onCostCalculated, isBatch = false }: CostCalculatorProps) {
+  const { theme } = useTheme();
   const [material, setMaterial] = useState('PLA');
   const [estimatedTime, setEstimatedTime] = useState(0);
   const [eta, setEta] = useState('N/A');
@@ -205,6 +207,10 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
     <View
       style={[
         styles.container,
+        { 
+          backgroundColor: theme.card,
+          ...theme.cardShadow 
+        },
         Platform.select({
           ios: {
             paddingTop: insets.top + 16,
@@ -220,22 +226,22 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
         }),
       ]}
     >
-      <Text style={styles.title}>Print Settings</Text>
+      <Text style={[styles.title, { color: theme.text }]}>Print Settings</Text>
       
       {/* Object Features Section */}
-      <Text style={styles.subTitle}>Object Features</Text>
-      <View style={styles.objectFeatures}>
+      <Text style={[styles.subTitle, { color: theme.secondaryText }]}>Object Features</Text>
+      <View style={[styles.objectFeatures, { backgroundColor: theme.cardAlt }]}>
         <View style={styles.featureItem}>
-          <Text style={styles.featureLabel}>File Name</Text>
-          <Text style={styles.featureValue}>{file.name}</Text>
+          <Text style={[styles.featureLabel, { color: theme.secondaryText }]}>File Name</Text>
+          <Text style={[styles.featureValue, { color: theme.text }]}>{file.name}</Text>
         </View>
         <View style={styles.featureItem}>
-          <Text style={styles.featureLabel}>File Size</Text>
-          <Text style={styles.featureValue}>{(file.size / 1024 / 1024).toFixed(2)} MB</Text>
+          <Text style={[styles.featureLabel, { color: theme.secondaryText }]}>File Size</Text>
+          <Text style={[styles.featureValue, { color: theme.text }]}>{(file.size / 1024 / 1024).toFixed(2)} MB</Text>
         </View>
         <View style={styles.featureItem}>
-          <Text style={styles.featureLabel}>Dimensions</Text>
-          <Text style={styles.featureValue}>
+          <Text style={[styles.featureLabel, { color: theme.secondaryText }]}>Dimensions</Text>
+          <Text style={[styles.featureValue, { color: theme.text }]}>
             {objectDimensions.width} × {objectDimensions.height} × {objectDimensions.depth} mm
           </Text>
         </View>
@@ -243,13 +249,14 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
 
       {/* Material Selection */}
       <View style={styles.setting}>
-        <Text style={styles.label}>Material</Text>
+        <Text style={[styles.label, { color: theme.secondaryText }]}>Material</Text>
         <View style={styles.materialOptions}>
           {Object.keys(MATERIALS).map((matName) => (
             <TouchableOpacity
               key={matName}
               style={[
                 styles.materialButton,
+                { backgroundColor: theme.inputBackground },
                 material === matName && {
                   backgroundColor: MATERIALS[matName].color,
                 },
@@ -259,6 +266,7 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
               <Text
                 style={[
                   styles.materialButtonText,
+                  { color: theme.text },
                   material === matName && styles.materialButtonTextSelected,
                 ]}
               >
@@ -271,13 +279,17 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
 
       {/* Optional Services */}
       <View style={styles.setting}>
-        <Text style={styles.label}>Optional Services</Text>
+        <Text style={[styles.label, { color: theme.secondaryText }]}>Optional Services</Text>
         {Object.keys(OPTIONAL_SERVICES).map((serviceKey) => (
           <View key={serviceKey} style={styles.serviceRow}>
             <TouchableOpacity
               style={[
                 styles.checkbox,
-                selectedServices[serviceKey] && styles.checkboxSelected,
+                { borderColor: theme.border },
+                selectedServices[serviceKey] && { 
+                  backgroundColor: theme.accent,
+                  borderColor: theme.accent 
+                },
               ]}
               onPress={() => {
                 setSelectedServices({
@@ -289,7 +301,7 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
             >
               {selectedServices[serviceKey] && <Text style={styles.checkmark}>✓</Text>}
             </TouchableOpacity>
-            <Text style={styles.serviceText}>
+            <Text style={[styles.serviceText, { color: theme.text }]}>
               {OPTIONAL_SERVICES[serviceKey].name} = ${OPTIONAL_SERVICES[serviceKey].price} per hour
             </Text>
           </View>
@@ -297,16 +309,16 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
       </View>
 
       {/* Display Estimated Print Time, ETA, and Material Cost */}
-      <View style={styles.estimates}>
+      <View style={[styles.estimates, { backgroundColor: theme.cardAlt }]}>
         <View style={styles.estimateItem}>
-          <Text style={styles.estimateLabel}>Estimated Print Time</Text>
-          <Text style={styles.estimateValue}>
+          <Text style={[styles.estimateLabel, { color: theme.secondaryText }]}>Estimated Print Time</Text>
+          <Text style={[styles.estimateValue, { color: theme.text }]}>
             {estimatedTime.toFixed(1)} hours
           </Text>
         </View>
         <View style={styles.estimateItem}>
-          <Text style={styles.estimateLabel}>Estimated Arrival</Text>
-          <Text style={styles.estimateValue}>{eta}</Text>
+          <Text style={[styles.estimateLabel, { color: theme.secondaryText }]}>Estimated Arrival</Text>
+          <Text style={[styles.estimateValue, { color: theme.text }]}>{eta}</Text>
         </View>
       </View>
     </View>
@@ -315,42 +327,24 @@ export function CostCalculator({ file, onCostCalculated, isBatch = false }: Cost
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     marginBottom: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-      web: {
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      },
-    }),
   },
   title: {
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 16,
-    color: '#333',
   },
   subTitle: {
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 12,
-    color: '#555',
   },
   setting: {
     marginBottom: 20,
   },
   label: {
     fontSize: 14,
-    color: '#666',
     marginBottom: 8,
   },
   materialOptions: {
@@ -362,14 +356,12 @@ const styles = StyleSheet.create({
   materialButton: {
     flex: 1,
     minWidth: 70,
-    backgroundColor: '#f0f0f0',
     padding: 10,
     borderRadius: 8,
     alignItems: 'center',
   },
   materialButtonText: {
     fontSize: 14,
-    color: '#333',
     fontWeight: '500',
   },
   materialButtonTextSelected: {
@@ -379,7 +371,6 @@ const styles = StyleSheet.create({
   estimates: {
     marginTop: 16,
     padding: 12,
-    backgroundColor: '#f8f8f8',
     borderRadius: 8,
   },
   estimateItem: {
@@ -390,12 +381,10 @@ const styles = StyleSheet.create({
   },
   estimateLabel: {
     fontSize: 14,
-    color: '#666',
   },
   estimateValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
   },
   serviceRow: {
     flexDirection: 'row',
@@ -406,15 +395,10 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderWidth: 1,
-    borderColor: '#ccc',
     borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
-  },
-  checkboxSelected: {
-    backgroundColor: '#4CAF50',
-    borderColor: '#4CAF50',
   },
   checkmark: {
     fontSize: 14,
@@ -423,11 +407,9 @@ const styles = StyleSheet.create({
   },
   serviceText: {
     fontSize: 14,
-    color: '#333',
   },
   objectFeatures: {
     padding: 12,
-    backgroundColor: '#f8f8f8',
     borderRadius: 8,
   },
   featureItem: {
@@ -438,11 +420,9 @@ const styles = StyleSheet.create({
   },
   featureLabel: {
     fontSize: 14,
-    color: '#666',
   },
   featureValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
   },
 });

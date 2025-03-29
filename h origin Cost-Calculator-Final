@@ -1,0 +1,5 @@
+[33mcommit 5cf7d11c0135b633f0ff3512c863c1ca48530f1a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mCost-Calculator-Final[m[33m)[m
+Author: Carlos Arango Velasquez <c.velasquez@acrrm.org.au>
+Date:   Sat Mar 29 17:36:39 2025 +1000
+
+    Add Object Features card to display file size and dimensions

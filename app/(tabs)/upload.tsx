@@ -15,6 +15,7 @@ import { Upload, FileWarning } from 'lucide-react-native';
 import { ModelViewer } from '../../components/ModelViewer';
 import { CostCalculator } from '../../components/CostCalculator';
 import { sendAdminNotification } from '../../utils/notifications';
+import { useTheme } from '../../components/ThemeContext';
 
 // Define the types of items that can be displayed in the FlatList
 type ListItemType = 
@@ -25,6 +26,7 @@ type ListItemType =
   | { type: 'error', message: string };
 
 export default function UploadScreen() {
+  const { theme } = useTheme();
   const [modelFile, setModelFile] = useState(null);
   const [totalCost, setTotalCost] = useState(0);
   const [error, setError] = useState('');
@@ -178,9 +180,9 @@ export default function UploadScreen() {
     switch (item.type) {
       case 'fileInfo':
         return (
-          <View style={styles.fileInfo}>
-            <Text style={styles.fileName}>File: {item.file.name}</Text>
-            <Text style={styles.fileSize}>
+          <View style={[styles.fileInfo, { backgroundColor: theme.card, ...theme.cardShadow }]}>
+            <Text style={[styles.fileName, { color: theme.text }]}>File: {item.file.name}</Text>
+            <Text style={[styles.fileSize, { color: theme.secondaryText }]}>
               Size: {(item.file.size / 1024 / 1024).toFixed(2)}MB
             </Text>
           </View>
@@ -188,7 +190,7 @@ export default function UploadScreen() {
       
       case 'modelViewer':
         return (
-          <View style={styles.modelContainer}>
+          <View style={[styles.modelContainer, { backgroundColor: theme.card, ...theme.cardShadow }]}>
             <ModelViewer fileUri={item.fileUri} />
           </View>
         );
@@ -203,17 +205,17 @@ export default function UploadScreen() {
       
       case 'totalCost':
         return (
-          <View style={styles.totalCostContainer}>
-            <Text style={styles.totalCostLabel}>Total Cost:</Text>
-            <Text style={styles.totalCostValue}>${item.cost.toFixed(2)}</Text>
+          <View style={[styles.totalCostContainer, { backgroundColor: theme.card, ...theme.cardShadow }]}>
+            <Text style={[styles.totalCostLabel, { color: theme.text }]}>Total Cost:</Text>
+            <Text style={[styles.totalCostValue, { color: theme.accent }]}>${item.cost.toFixed(2)}</Text>
           </View>
         );
       
       case 'error':
         return (
-          <View style={styles.errorContainer}>
-            <FileWarning size={20} color="#ff3b30" />
-            <Text style={styles.errorText}>{item.message}</Text>
+          <View style={[styles.errorContainer, { backgroundColor: 'rgba(255, 69, 58, 0.1)' }]}>
+            <FileWarning size={20} color={theme.error} />
+            <Text style={[styles.errorText, { color: theme.error }]}>{item.message}</Text>
           </View>
         );
       
@@ -254,10 +256,10 @@ export default function UploadScreen() {
   }, [error]);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Upload Your 3D Model</Text>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.title, { color: theme.text }]}>Upload Your 3D Model</Text>
+        <Text style={[styles.subtitle, { color: theme.secondaryText }]}>
           {Platform.OS === 'ios' 
             ? 'Select any STL file from your device'
             : 'We support STL files up to 50MB'}
@@ -267,12 +269,13 @@ export default function UploadScreen() {
       <TouchableOpacity 
         style={[
           styles.uploadButton,
-          modelFile && styles.uploadButtonActive
+          { backgroundColor: theme.accent },
+          modelFile && { backgroundColor: theme.accentLight }
         ]} 
         onPress={handleFilePick}
       >
-        <Upload size={24} color="#fff" />
-        <Text style={styles.uploadText}>
+        <Upload size={24} color={theme.text} />
+        <Text style={[styles.uploadText, { color: theme.text }]}>
           {modelFile ? 'Change STL File' : 'Select STL File'}
         </Text>
       </TouchableOpacity>
@@ -286,11 +289,11 @@ export default function UploadScreen() {
         ListFooterComponent={
           modelFile ? (
             <TouchableOpacity
-              style={styles.payButton}
+              style={[styles.payButton, { backgroundColor: theme.success }]}
               onPress={handlePayment}
               disabled={!modelFile}
             >
-              <Text style={styles.payButtonText}>
+              <Text style={[styles.payButtonText, { color: theme.text }]}>
                 Proceed to Payment
               </Text>
             </TouchableOpacity>
@@ -299,9 +302,9 @@ export default function UploadScreen() {
       />
 
       {error && listItems.length === 0 && (
-        <View style={styles.errorContainer}>
-          <FileWarning size={20} color="#ff3b30" />
-          <Text style={styles.errorText}>{error}</Text>
+        <View style={[styles.errorContainer, { backgroundColor: 'rgba(255, 69, 58, 0.1)' }]}>
+          <FileWarning size={20} color={theme.error} />
+          <Text style={[styles.errorText, { color: theme.error }]}>{error}</Text>
         </View>
       )}
     </SafeAreaView>
@@ -312,7 +315,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     marginBottom: 24,
@@ -320,27 +322,20 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
   },
   uploadButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#007AFF',
     padding: 16,
     borderRadius: 12,
     marginBottom: 20,
   },
-  uploadButtonActive: {
-    backgroundColor: '#0056b3',
-  },
   uploadText: {
-    color: '#fff',
     fontSize: 16,
     marginLeft: 10,
     fontWeight: '600',
@@ -351,113 +346,57 @@ const styles = StyleSheet.create({
   errorContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffebeb',
     padding: 12,
     borderRadius: 8,
     marginBottom: 20,
   },
   errorText: {
-    color: '#ff3b30',
     marginLeft: 8,
     flex: 1,
   },
   fileInfo: {
-    backgroundColor: '#fff',
     padding: 16,
     borderRadius: 12,
     marginBottom: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-      web: {
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      },
-    }),
   },
   fileName: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 4,
   },
   fileSize: {
     fontSize: 14,
-    color: '#666',
   },
   modelContainer: {
     height: 250,
-    backgroundColor: '#fff',
     borderRadius: 12,
     overflow: 'hidden',
     marginBottom: 20,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-      web: {
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      },
-    }),
   },
   payButton: {
-    backgroundColor: '#34C759',
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 10,
   },
-  payButtonDisabled: {
-    backgroundColor: '#a8e4b8',
-  },
   payButtonText: {
-    color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
   totalCostContainer: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-      web: {
-        boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-      },
-    }),
   },
   totalCostLabel: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
   },
   totalCostValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#007AFF',
   },
 });
