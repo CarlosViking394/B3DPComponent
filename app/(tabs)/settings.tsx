@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Bell, CreditCard, CircleHelp as HelpCircle, Lock, Mail, User } from 'lucide-react-native';
 import { PaymentMethodModal } from '../../components/PaymentMethodModal';
+import { ProfileInfoModal, ProfileData } from '../../components/ProfileInfoModal';
 
 export default function SettingsScreen() {
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
   const [savedPaymentMethods, setSavedPaymentMethods] = useState<Array<{id: string, last4: string, brand: string}>>([]);
+  const [profileData, setProfileData] = useState<ProfileData | null>(null);
 
   const handleSavePayment = (paymentDetails: any) => {
     // In a real app, you would send this to your backend
@@ -33,6 +36,17 @@ export default function SettingsScreen() {
     setPaymentModalVisible(true);
   };
 
+  const handleProfilePress = () => {
+    setProfileModalVisible(true);
+  };
+
+  const handleSaveProfile = (data: ProfileData) => {
+    // In a real app, you would save this to the backend
+    console.log('Profile data saved:', data);
+    setProfileData(data);
+    Alert.alert('Success', 'Profile information updated successfully!');
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -44,10 +58,18 @@ export default function SettingsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Account</Text>
         
-        <TouchableOpacity style={styles.settingItem}>
+        <TouchableOpacity 
+          style={styles.settingItem}
+          onPress={handleProfilePress}
+        >
           <User size={24} color="#666" />
           <View style={styles.settingContent}>
             <Text style={styles.settingLabel}>Profile Information</Text>
+            {profileData && (
+              <Text style={styles.settingDetail}>
+                {profileData.fullName}
+              </Text>
+            )}
           </View>
         </TouchableOpacity>
         
@@ -55,6 +77,11 @@ export default function SettingsScreen() {
           <Mail size={24} color="#666" />
           <View style={styles.settingContent}>
             <Text style={styles.settingLabel}>Email Preferences</Text>
+            {profileData && (
+              <Text style={styles.settingDetail}>
+                {Object.values(profileData.emailPreferences).filter(Boolean).length} preferences enabled
+              </Text>
+            )}
           </View>
         </TouchableOpacity>
         
@@ -124,10 +151,18 @@ export default function SettingsScreen() {
         <Text style={styles.signOutText}>Sign Out</Text>
       </TouchableOpacity>
 
+      {/* Modals */}
       <PaymentMethodModal
         visible={paymentModalVisible}
         onClose={() => setPaymentModalVisible(false)}
         onSave={handleSavePayment}
+      />
+
+      <ProfileInfoModal
+        visible={profileModalVisible}
+        onClose={() => setProfileModalVisible(false)}
+        onSave={handleSaveProfile}
+        initialData={profileData || undefined}
       />
     </ScrollView>
   );
