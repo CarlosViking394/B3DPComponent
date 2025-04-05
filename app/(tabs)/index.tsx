@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ImageBackground } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, ImageBackground, Platform } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { Printer, Clock, Palette, Award, Upload, ArrowRight } from 'lucide-react-native';
 import { useTheme } from '../../components/ThemeContext';
@@ -22,13 +22,23 @@ export default function HomeScreen() {
           source={require('../../assets/images/printing.webp')}
           style={styles.heroImage}
         />
-        <View style={[styles.heroOverlay, { backgroundColor: 'rgba(0,0,0,0.55)' }]}>
+        <View style={[styles.heroOverlay, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
           <View style={styles.heroContent}>
             <Text style={[styles.heroTitle, { color: theme.text }]}>3D Printing Made Simple</Text>
             <Text style={[styles.heroSubtitle, { color: theme.text }]}>Upload, Customize, Print</Text>
             <Link href="/upload" asChild>
-              <TouchableOpacity style={[styles.heroButton, { backgroundColor: theme.accent }]}>
-                <Text style={[styles.heroButtonText, { color: theme.text }]}>Start Printing</Text>
+              <TouchableOpacity 
+                activeOpacity={0.8}
+                style={styles.buttonWrapper}
+              >
+                <View style={styles.glassButtonContainer}>
+                  <View style={styles.glassButton}>
+                    <View style={styles.glassInner}>
+                      <View style={styles.glassHighlight} />
+                      <Text style={[styles.heroButtonText, { color: theme.text }]}>Start Printing</Text>
+                    </View>
+                  </View>
+                </View>
               </TouchableOpacity>
             </Link>
           </View>
@@ -126,7 +136,7 @@ export default function HomeScreen() {
               borderColor: theme.border
             }]}>
               <Text style={[styles.ctaWhiteButtonText, { color: theme.accent }]}>Let's Go</Text>
-              <ArrowRight size={20} color={theme.accent} style={styles.ctaButtonArrow} />
+              <ArrowRight size={18} color={theme.accent} style={styles.ctaButtonArrow} />
             </View>
           </TouchableOpacity>
         </Link>
@@ -140,7 +150,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   hero: {
-    height: 500,
+    height: 400,
     position: 'relative',
   },
   heroImage: {
@@ -158,28 +168,75 @@ const styles = StyleSheet.create({
   },
   heroContent: {
     width: '100%',
-    padding: 30,
+    padding: 25,
     alignItems: 'center',
   },
   heroTitle: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   heroSubtitle: {
-    fontSize: 18,
+    fontSize: 16,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  heroButton: {
-    paddingHorizontal: 30,
-    paddingVertical: 15,
-    borderRadius: 25,
+  buttonWrapper: {
+    transform: [{ scale: 1.0 }],
+  },
+  glassButtonContainer: {
+    marginTop: 12,
+    transform: [{ perspective: 1000 }],
+    position: 'relative',
+  },
+  glassButton: {
+    paddingHorizontal: 22,
+    paddingVertical: 10,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    overflow: 'hidden',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 140,
+    ...Platform.select({
+      web: {
+        backdropFilter: 'blur(10px) saturate(160%) contrast(110%)',
+      },
+    }),
+    shadowColor: 'rgba(255, 255, 255, 0.5)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 4,
+    position: 'relative',
+  },
+  glassInner: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  glassHighlight: {
+    position: 'absolute',
+    top: -12,
+    left: -12,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    transform: [{ rotate: '45deg' }],
   },
   heroButtonText: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '600',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+    letterSpacing: 0.5,
   },
   features: {
     padding: 20,
@@ -280,39 +337,22 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   ctaWhiteButton: {
-    paddingHorizontal: 40,
-    paddingVertical: 16,
-    borderRadius: 25,
-    elevation: 8,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
-    minWidth: 220,
+    paddingHorizontal: 30,
+    paddingVertical: 12,
+    borderRadius: 20,
+    elevation: 6,
+    shadowColor: '#0088FF',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    minWidth: 160,
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255,255,255,0.9)',
+    transform: [{ translateY: 0 }],
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-    borderWidth: 2,
-  },
-  ctaWhiteButtonText: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginRight: 8,
-  },
-  ctaButtonArrow: {
-    marginLeft: 2,
-  },
-  ctaButton: {
-    paddingHorizontal: 32,
-    paddingVertical: 15,
-    borderRadius: 25,
-    elevation: 6,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    minWidth: 200,
-    borderWidth: 2,
-    transform: [{ translateY: 0 }],
   },
   ctaButtonInner: {
     flexDirection: 'row',
@@ -323,7 +363,29 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   ctaButtonText: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
+  },
+  ctaWhiteButtonText: {
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginRight: 6,
+  },
+  ctaButtonArrow: {
+    marginLeft: 2,
+  },
+  ctaButton: {
+    paddingHorizontal: 32,
+    paddingVertical: 15,
+    borderRadius: 25,
+    elevation: 6,
+    shadowColor: 'rgba(0, 136, 255, 0.5)',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    minWidth: 200,
+    borderWidth: 2,
+    transform: [{ translateY: 0 }],
   },
 });
