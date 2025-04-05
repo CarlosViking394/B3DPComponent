@@ -31,13 +31,11 @@ export default function HomeScreen() {
                 activeOpacity={0.8}
                 style={styles.buttonWrapper}
               >
-                <View style={styles.glassButtonContainer}>
-                  <View style={styles.glassButton}>
-                    <View style={styles.glassInner}>
-                      <View style={styles.glassHighlight} />
-                      <Text style={[styles.heroButtonText, { color: theme.text }]}>Start Printing</Text>
-                    </View>
-                  </View>
+                <View style={[styles.glassButton, { 
+                  borderColor: 'rgba(255, 255, 255, 0.3)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                }]}>
+                  <Text style={[styles.heroButtonText, { color: theme.text }]}>Start Printing</Text>
                 </View>
               </TouchableOpacity>
             </Link>
@@ -132,11 +130,10 @@ export default function HomeScreen() {
           <TouchableOpacity activeOpacity={0.7}>
             <View style={[styles.ctaWhiteButton, { 
               backgroundColor: theme.card,
-              shadowColor: theme.accent,
               borderColor: theme.border
             }]}>
               <Text style={[styles.ctaWhiteButtonText, { color: theme.accent }]}>Let's Go</Text>
-              <ArrowRight size={18} color={theme.accent} style={styles.ctaButtonArrow} />
+              <ArrowRight size={16} color={theme.accent} style={styles.ctaButtonArrow} />
             </View>
           </TouchableOpacity>
         </Link>
@@ -183,60 +180,28 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   buttonWrapper: {
-    transform: [{ scale: 1.0 }],
-  },
-  glassButtonContainer: {
-    marginTop: 12,
-    transform: [{ perspective: 1000 }],
-    position: 'relative',
+    marginTop: 16,
   },
   glassButton: {
-    paddingHorizontal: 22,
-    paddingVertical: 7,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.3)',
-    overflow: 'hidden',
-    backgroundColor: 'rgba(255, 255, 255, 0.12)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    minWidth: 140,
-    ...Platform.select({
-      web: {
-        backdropFilter: 'blur(10px) saturate(160%) contrast(110%)',
-      },
-    }),
-    shadowColor: 'rgba(255, 255, 255, 0.5)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    elevation: 4,
-    position: 'relative',
-  },
-  glassInner: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  glassHighlight: {
-    position: 'absolute',
-    top: -12,
-    left: -12,
-    width: 40,
-    height: 40,
+    paddingHorizontal: 24,
+    paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    transform: [{ rotate: '45deg' }],
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 150,
+    shadowColor: 'rgba(255, 255, 255, 0.5)',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 2,
   },
   heroButtonText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 1, height: 1 },
+    textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
-    letterSpacing: 0.5,
   },
   features: {
     padding: 20,
@@ -337,55 +302,27 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   ctaWhiteButton: {
-    paddingHorizontal: 30,
+    paddingHorizontal: 28,
     paddingVertical: 8,
     borderRadius: 20,
-    elevation: 6,
-    shadowColor: '#0088FF',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    minWidth: 160,
-    backgroundColor: '#fff',
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.9)',
-    transform: [{ translateY: 0 }],
+    elevation: 3,
+    shadowColor: 'rgba(0, 136, 255, 0.3)',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    minWidth: 140,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
     flexDirection: 'row',
-  },
-  ctaButtonInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ctaButtonIcon: {
-    marginRight: 8,
-  },
-  ctaButtonText: {
-    fontSize: 22,
-    fontWeight: '700',
   },
   ctaWhiteButtonText: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '600',
     textAlign: 'center',
     marginRight: 6,
   },
   ctaButtonArrow: {
     marginLeft: 2,
-  },
-  ctaButton: {
-    paddingHorizontal: 32,
-    paddingVertical: 15,
-    borderRadius: 25,
-    elevation: 6,
-    shadowColor: 'rgba(0, 136, 255, 0.5)',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    minWidth: 200,
-    borderWidth: 2,
-    transform: [{ translateY: 0 }],
   },
 });
