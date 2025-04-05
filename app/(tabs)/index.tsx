@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   },
   glassButton: {
     paddingHorizontal: 22,
-    paddingVertical: 10,
+    paddingVertical: 7,
     borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.3)',
@@ -231,7 +231,7 @@ const styles = StyleSheet.create({
     transform: [{ rotate: '45deg' }],
   },
   heroButtonText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 1, height: 1 },
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
   },
   ctaWhiteButton: {
     paddingHorizontal: 30,
-    paddingVertical: 12,
+    paddingVertical: 8,
     borderRadius: 20,
     elevation: 6,
     shadowColor: '#0088FF',
