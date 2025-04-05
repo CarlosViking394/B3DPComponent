@@ -46,34 +46,42 @@ export default function HomeScreen() {
       <View style={styles.features}>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>Why Choose Us?</Text>
         <View style={styles.featureGrid}>
-          <View style={[styles.featureCard, { backgroundColor: theme.card, ...theme.cardShadow }]}>
-            <View style={[styles.featureIconContainer, { backgroundColor: theme.accentLight }]}>
-              <Printer size={32} color={theme.accent} />
+          {[
+            {
+              icon: <Printer size={32} color={theme.accent} />,
+              title: "High Quality",
+              description: "Professional grade 3D printing with premium materials"
+            },
+            {
+              icon: <Clock size={32} color={theme.accent} />,
+              title: "Fast Turnaround",
+              description: "Quick printing and delivery of your models"
+            },
+            {
+              icon: <Palette size={32} color={theme.accent} />,
+              title: "Custom Colors",
+              description: "Wide range of colors and materials to choose from"
+            },
+            {
+              icon: <Award size={32} color={theme.accent} />,
+              title: "Guaranteed",
+              description: "100% satisfaction guarantee on all prints"
+            }
+          ].map((feature, index) => (
+            <View 
+              key={index} 
+              style={[
+                styles.featureCard, 
+                { backgroundColor: theme.card, ...theme.cardShadow }
+              ]}
+            >
+              <View style={[styles.featureIconContainer, { backgroundColor: theme.accentLight }]}>
+                {feature.icon}
+              </View>
+              <Text style={[styles.featureTitle, { color: theme.text }]}>{feature.title}</Text>
+              <Text style={[styles.featureText, { color: theme.secondaryText }]}>{feature.description}</Text>
             </View>
-            <Text style={[styles.featureTitle, { color: theme.text }]}>High Quality</Text>
-            <Text style={[styles.featureText, { color: theme.secondaryText }]}>Professional grade 3D printing with premium materials</Text>
-          </View>
-          <View style={[styles.featureCard, { backgroundColor: theme.card, ...theme.cardShadow }]}>
-            <View style={[styles.featureIconContainer, { backgroundColor: theme.accentLight }]}>
-              <Clock size={32} color={theme.accent} />
-            </View>
-            <Text style={[styles.featureTitle, { color: theme.text }]}>Fast Turnaround</Text>
-            <Text style={[styles.featureText, { color: theme.secondaryText }]}>Quick printing and delivery of your models</Text>
-          </View>
-          <View style={[styles.featureCard, { backgroundColor: theme.card, ...theme.cardShadow }]}>
-            <View style={[styles.featureIconContainer, { backgroundColor: theme.accentLight }]}>
-              <Palette size={32} color={theme.accent} />
-            </View>
-            <Text style={[styles.featureTitle, { color: theme.text }]}>Custom Colors</Text>
-            <Text style={[styles.featureText, { color: theme.secondaryText }]}>Wide range of colors and materials to choose from</Text>
-          </View>
-          <View style={[styles.featureCard, { backgroundColor: theme.card, ...theme.cardShadow }]}>
-            <View style={[styles.featureIconContainer, { backgroundColor: theme.accentLight }]}>
-              <Award size={32} color={theme.accent} />
-            </View>
-            <Text style={[styles.featureTitle, { color: theme.text }]}>Guaranteed</Text>
-            <Text style={[styles.featureText, { color: theme.secondaryText }]}>100% satisfaction guarantee on all prints</Text>
-          </View>
+          ))}
         </View>
       </View>
 
@@ -217,15 +225,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginHorizontal: -8,
+    width: '100%',
   },
   featureCard: {
     width: '48%',
     padding: 16,
     borderRadius: 12,
-    marginBottom: 16,
-    marginHorizontal: 4,
+    marginBottom: 20,
     alignItems: 'center',
+    maxWidth: '48%',
+    flexBasis: '48%',
   },
   featureIconContainer: {
     width: 60,
@@ -233,12 +242,12 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   featureTitle: {
     fontSize: 18,
     fontWeight: '600',
-    marginTop: 10,
+    marginTop: 8,
     marginBottom: 8,
     textAlign: 'center',
   },
