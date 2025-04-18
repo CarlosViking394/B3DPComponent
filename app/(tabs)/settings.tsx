@@ -162,6 +162,9 @@ export default function SettingsScreen() {
   );
 }
 
+// Add a display name for better component stack traces
+SettingsScreen.displayName = 'SettingsScreen';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

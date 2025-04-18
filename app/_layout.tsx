@@ -83,6 +83,12 @@ function AppLayout() {
             }}
           >
             <Stack.Screen 
+              name="(tabs)" 
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen 
               name="+not-found" 
               options={{
                 headerTitle: "Not Found",
@@ -98,12 +104,6 @@ function AppLayout() {
                   fontSize: 18,
                   fontWeight: '500',
                 },
-              }}
-            />
-            <Stack.Screen 
-              name="profile" 
-              options={{
-                headerShown: false,
               }}
             />
           </Stack>
